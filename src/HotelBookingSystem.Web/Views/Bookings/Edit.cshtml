@@ -1,0 +1,33 @@
+@model UpdateBookingStatusDto
+@{
+    ViewData["Title"] = "تعديل حالة الحجز";
+    var booking = (BookingDto)ViewBag.Booking;
+}
+
+<div class="card" style="max-width:600px;">
+    <div class="card-header"><i class="bi bi-pencil"></i> تعديل حالة الحجز رقم @booking.Id</div>
+    <div class="card-body">
+        <dl class="row mb-3">
+            <dt class="col-sm-4">المستخدم</dt><dd class="col-sm-8">@booking.UserName</dd>
+            <dt class="col-sm-4">الغرفة</dt><dd class="col-sm-8">@booking.HotelName - @booking.RoomNumber</dd>
+            <dt class="col-sm-4">الفترة</dt><dd class="col-sm-8">@booking.CheckInDate.ToString("yyyy-MM-dd") &rarr; @booking.CheckOutDate.ToString("yyyy-MM-dd")</dd>
+        </dl>
+
+        <form asp-action="Edit" asp-route-id="@booking.Id" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="Status" class="form-label">حالة الحجز</label>
+                <select asp-for="Status" asp-items="@(ViewBag.StatusList as SelectList)" class="form-select"></select>
+                <span asp-validation-for="Status" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> حفظ التعديلات</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

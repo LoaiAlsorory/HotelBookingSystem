@@ -1,0 +1,66 @@
+@model IEnumerable<RoomDto>
+@{
+    ViewData["Title"] = "الغرف";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-door-open"></i> قائمة الغرف</h5>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> إضافة غرفة
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover align-middle data-table w-100">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>الصورة</th>
+                    <th>الفندق</th>
+                    <th>الرقم</th>
+                    <th>النوع</th>
+                    <th>السعر/الليلة</th>
+                    <th>السعة</th>
+                    <th>الحالة</th>
+                    <th class="text-center">إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var room in Model)
+                {
+                    <tr>
+                        <td>@room.Id</td>
+                        <td>
+                            <img src="@(string.IsNullOrEmpty(room.ImageUrl) ? "https://placehold.co/80x60?text=Room" : room.ImageUrl)" class="thumb-img" alt="@room.RoomNumber" />
+                        </td>
+                        <td>@room.HotelName</td>
+                        <td>@room.RoomNumber</td>
+                        <td>@room.RoomType</td>
+                        <td>@room.PricePerNight.ToString("N0")</td>
+                        <td>@room.Capacity</td>
+                        <td>
+                            @if (room.IsAvailable)
+                            {
+                                <span class="badge bg-success">متاحة</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">غير متاحة</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <a asp-action="Details" asp-route-id="@room.Id" class="btn btn-sm btn-outline-secondary" title="التفاصيل"><i class="bi bi-eye"></i></a>
+                            <a asp-action="Edit" asp-route-id="@room.Id" class="btn btn-sm btn-outline-primary" title="تعديل"><i class="bi bi-pencil"></i></a>
+                            <button type="button" class="btn btn-sm btn-outline-danger js-delete-btn"
+                                    data-delete-url="@Url.Action("Delete", "Rooms", new { id = room.Id })"
+                                    data-item-name="@($"الغرفة {room.RoomNumber}")" title="حذف">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

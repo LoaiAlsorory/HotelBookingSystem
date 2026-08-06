@@ -1,0 +1,21 @@
+<!-- نافذة تأكيد الحذف الموحّدة (Bootstrap Modal) تُستخدم في كل صفحات Index -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-1"></i> تأكيد الحذف</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body">
+                هل أنت متأكد من رغبتك في حذف <strong id="deleteItemName"></strong>؟ لا يمكن التراجع عن هذا الإجراء.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form id="deleteConfirmForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> حذف نهائي</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

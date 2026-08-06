@@ -1,0 +1,56 @@
+@model CreateBookingDto
+@{
+    ViewData["Title"] = "إضافة حجز";
+}
+
+<div class="card" style="max-width:650px;">
+    <div class="card-header"><i class="bi bi-journal-plus"></i> إضافة حجز جديد</div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="UserId" class="form-label">المستخدم</label>
+                <select asp-for="UserId" asp-items="@(ViewBag.Users as SelectList)" class="form-select">
+                    <option value="">-- اختر المستخدم --</option>
+                </select>
+                <span asp-validation-for="UserId" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="RoomId" class="form-label">الغرفة</label>
+                <select asp-for="RoomId" asp-items="@(ViewBag.Rooms as SelectList)" class="form-select">
+                    <option value="">-- اختر الغرفة --</option>
+                </select>
+                <span asp-validation-for="RoomId" class="text-danger small"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CheckInDate" class="form-label">تاريخ الدخول</label>
+                    <input asp-for="CheckInDate" type="date" class="form-control" />
+                    <span asp-validation-for="CheckInDate" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CheckOutDate" class="form-label">تاريخ الخروج</label>
+                    <input asp-for="CheckOutDate" type="date" class="form-control" />
+                    <span asp-validation-for="CheckOutDate" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="GuestsCount" class="form-label">عدد الضيوف</label>
+                <input asp-for="GuestsCount" type="number" min="1" max="10" class="form-control" />
+                <span asp-validation-for="GuestsCount" class="text-danger small"></span>
+                <div class="form-text">سيتم رفض الحجز تلقائيًا إن تجاوز عدد الضيوف سعة الغرفة، أو تعارض مع حجز قائم لنفس الفترة.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> حفظ الحجز</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

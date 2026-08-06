@@ -1,0 +1,25 @@
+@model BookingDto
+@{
+    ViewData["Title"] = "تفاصيل الحجز";
+}
+
+<div class="card" style="max-width:600px;">
+    <div class="card-header"><i class="bi bi-journal-check"></i> تفاصيل الحجز رقم @Model.Id</div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">المستخدم</dt><dd class="col-sm-8">@Model.UserName</dd>
+            <dt class="col-sm-4">الفندق</dt><dd class="col-sm-8">@Model.HotelName</dd>
+            <dt class="col-sm-4">رقم الغرفة</dt><dd class="col-sm-8">@Model.RoomNumber</dd>
+            <dt class="col-sm-4">تاريخ الدخول</dt><dd class="col-sm-8">@Model.CheckInDate.ToString("yyyy-MM-dd")</dd>
+            <dt class="col-sm-4">تاريخ الخروج</dt><dd class="col-sm-8">@Model.CheckOutDate.ToString("yyyy-MM-dd")</dd>
+            <dt class="col-sm-4">عدد الضيوف</dt><dd class="col-sm-8">@Model.GuestsCount</dd>
+            <dt class="col-sm-4">الإجمالي</dt><dd class="col-sm-8">@Model.TotalPrice.ToString("N0") ريال</dd>
+            <dt class="col-sm-4">الحالة</dt><dd class="col-sm-8"><span class="badge badge-status-@Model.Status.ToLower()">@Model.Status</span></dd>
+            <dt class="col-sm-4">تاريخ الإنشاء</dt><dd class="col-sm-8">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+        </dl>
+    </div>
+    <div class="card-footer d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i> تعديل الحالة</a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-right"></i> رجوع</a>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+@model HotelDto
+@{
+    ViewData["Title"] = "حذف فندق";
+}
+
+<div class="card border-danger" style="max-width:600px;">
+    <div class="card-header bg-danger text-white"><i class="bi bi-exclamation-triangle"></i> تأكيد حذف الفندق</div>
+    <div class="card-body">
+        <p>هل أنت متأكد من رغبتك في حذف الفندق التالي؟ سيتم حذف كل غرفه تلقائيًا. لن تتمكن من الحذف إذا كان لأي من غرفه حجوزات قائمة (يجب حذف تلك الحجوزات أولًا).</p>
+        <dl class="row mb-0">
+            <dt class="col-sm-4">الاسم</dt><dd class="col-sm-8">@Model.Name</dd>
+            <dt class="col-sm-4">المدينة</dt><dd class="col-sm-8">@Model.City</dd>
+            <dt class="col-sm-4">عدد الغرف</dt><dd class="col-sm-8">@Model.RoomsCount</dd>
+        </dl>
+    </div>
+    <div class="card-footer d-flex gap-2">
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> نعم، حذف نهائي</button>
+        </form>
+        <a asp-action="Index" class="btn btn-outline-secondary">إلغاء</a>
+    </div>
+</div>

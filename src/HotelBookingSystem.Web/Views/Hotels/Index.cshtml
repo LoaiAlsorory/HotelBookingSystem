@@ -1,0 +1,53 @@
+@model IEnumerable<HotelDto>
+@{
+    ViewData["Title"] = "الفنادق";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-building-fill"></i> قائمة الفنادق</h5>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> إضافة فندق
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover align-middle data-table w-100">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>الصورة</th>
+                    <th>الاسم</th>
+                    <th>المدينة</th>
+                    <th>التقييم</th>
+                    <th>عدد الغرف</th>
+                    <th class="text-center">إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var hotel in Model)
+                {
+                    <tr>
+                        <td>@hotel.Id</td>
+                        <td>
+                            <img src="@(string.IsNullOrEmpty(hotel.ImageUrl) ? "https://placehold.co/80x60?text=Hotel" : hotel.ImageUrl)" class="thumb-img" alt="@hotel.Name" />
+                        </td>
+                        <td>@hotel.Name</td>
+                        <td>@hotel.City</td>
+                        <td><i class="bi bi-star-fill text-warning"></i> @hotel.Rating</td>
+                        <td><span class="badge bg-info text-dark">@hotel.RoomsCount</span></td>
+                        <td class="text-center">
+                            <a asp-action="Details" asp-route-id="@hotel.Id" class="btn btn-sm btn-outline-secondary" title="التفاصيل"><i class="bi bi-eye"></i></a>
+                            <a asp-action="Edit" asp-route-id="@hotel.Id" class="btn btn-sm btn-outline-primary" title="تعديل"><i class="bi bi-pencil"></i></a>
+                            <button type="button" class="btn btn-sm btn-outline-danger js-delete-btn"
+                                    data-delete-url="@Url.Action("Delete", "Hotels", new { id = hotel.Id })"
+                                    data-item-name="@hotel.Name" title="حذف">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

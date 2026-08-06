@@ -1,0 +1,22 @@
+@model UserDto
+@{
+    ViewData["Title"] = "حذف مستخدم";
+}
+
+<div class="card border-danger" style="max-width:600px;">
+    <div class="card-header bg-danger text-white"><i class="bi bi-exclamation-triangle"></i> تأكيد حذف المستخدم</div>
+    <div class="card-body">
+        <p>هل أنت متأكد من رغبتك في حذف المستخدم التالي؟ لا يمكن التراجع عن هذا الإجراء.</p>
+        <dl class="row mb-0">
+            <dt class="col-sm-4">الاسم الكامل</dt><dd class="col-sm-8">@Model.FullName</dd>
+            <dt class="col-sm-4">البريد الإلكتروني</dt><dd class="col-sm-8">@Model.Email</dd>
+            <dt class="col-sm-4">الدور</dt><dd class="col-sm-8">@Model.Role</dd>
+        </dl>
+    </div>
+    <div class="card-footer d-flex gap-2">
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> نعم، حذف نهائي</button>
+        </form>
+        <a asp-action="Index" class="btn btn-outline-secondary">إلغاء</a>
+    </div>
+</div>

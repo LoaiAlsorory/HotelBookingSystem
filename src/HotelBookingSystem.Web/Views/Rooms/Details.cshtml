@@ -1,0 +1,32 @@
+@model RoomDto
+@{
+    ViewData["Title"] = "تفاصيل الغرفة";
+}
+
+<div class="card" style="max-width:600px;">
+    <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "https://placehold.co/600x300?text=Room" : Model.ImageUrl)" class="detail-img" alt="@Model.RoomNumber" />
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">الفندق</dt><dd class="col-sm-8">@Model.HotelName</dd>
+            <dt class="col-sm-4">رقم الغرفة</dt><dd class="col-sm-8">@Model.RoomNumber</dd>
+            <dt class="col-sm-4">النوع</dt><dd class="col-sm-8">@Model.RoomType</dd>
+            <dt class="col-sm-4">السعر لكل ليلة</dt><dd class="col-sm-8">@Model.PricePerNight.ToString("N0") ريال</dd>
+            <dt class="col-sm-4">السعة</dt><dd class="col-sm-8">@Model.Capacity أفراد</dd>
+            <dt class="col-sm-4">الحالة</dt>
+            <dd class="col-sm-8">
+                @if (Model.IsAvailable)
+                {
+                    <span class="badge bg-success">متاحة</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">غير متاحة</span>
+                }
+            </dd>
+        </dl>
+    </div>
+    <div class="card-footer d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i> تعديل</a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-right"></i> رجوع</a>
+    </div>
+</div>

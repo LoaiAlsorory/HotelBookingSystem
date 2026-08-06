@@ -1,0 +1,65 @@
+@model HotelDto
+@{
+    ViewData["Title"] = "تفاصيل الفندق";
+    var rooms = (IEnumerable<RoomDto>)ViewBag.Rooms;
+}
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card">
+            <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "https://placehold.co/600x300?text=Hotel" : Model.ImageUrl)" class="detail-img" alt="@Model.Name" />
+            <div class="card-body">
+                <h5>@Model.Name</h5>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">المدينة</dt><dd class="col-sm-8">@Model.City</dd>
+                    <dt class="col-sm-4">العنوان</dt><dd class="col-sm-8">@Model.Address</dd>
+                    <dt class="col-sm-4">التقييم</dt><dd class="col-sm-8"><i class="bi bi-star-fill text-warning"></i> @Model.Rating</dd>
+                    <dt class="col-sm-4">الوصف</dt><dd class="col-sm-8">@(Model.Description ?? "-")</dd>
+                </dl>
+            </div>
+            <div class="card-footer d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i> تعديل</a>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-right"></i> رجوع</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-door-open"></i> غرف هذا الفندق (@rooms.Count())</div>
+            <div class="card-body">
+                @if (!rooms.Any())
+                {
+                    <p class="text-muted mb-0">لا توجد غرف مسجّلة لهذا الفندق بعد.</p>
+                }
+                else
+                {
+                    <table class="table table-sm align-middle">
+                        <thead><tr><th>الرقم</th><th>النوع</th><th>السعر/الليلة</th><th>السعة</th><th>الحالة</th></tr></thead>
+                        <tbody>
+                            @foreach (var r in rooms)
+                            {
+                                <tr>
+                                    <td>@r.RoomNumber</td>
+                                    <td>@r.RoomType</td>
+                                    <td>@r.PricePerNight.ToString("N0")</td>
+                                    <td>@r.Capacity</td>
+                                    <td>
+                                        @if (r.IsAvailable)
+                                        {
+                                            <span class="badge bg-success">متاحة</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">غير متاحة</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
