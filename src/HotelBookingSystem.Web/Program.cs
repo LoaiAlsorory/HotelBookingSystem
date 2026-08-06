@@ -2,12 +2,34 @@ using HotelBookingSystem.Domain.Entities;
 using HotelBookingSystem.Domain.Enums;
 using HotelBookingSystem.Infrastructure;
 using HotelBookingSystem.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ---------- Services ----------
-builder.Services.AddControllersWithViews();
+// كل الصفحات محمية تلقائياً (تتطلب تسجيل دخول) ما عدا ما يُعلَّم بـ [AllowAnonymous]
+// (يُستخدم على AccountController فقط لصفحتي Login/AccessDenied)
+builder.Services.AddControllersWithViews(options =>
+{
+    var requireAuthPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+    options.Filters.Add(new AuthorizeFilter(requireAuthPolicy));
+});
+
+// تسجيل الدخول بالكوكيز (Cookie Authentication) لواجهة الويب - مستقل عن JWT الخاص بالـ API
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+        options.Cookie.Name = "HotelBookingSystem.Web.Auth";
+    });
 
 // طبقة Infrastructure (DbContext + Repositories + Services) - نفس قاعدة بيانات W5/W6
 // نستدعي الخدمات من Application/Infrastructure مباشرة (Clean Architecture) بدون HTTP وسيط
@@ -34,6 +56,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// يجب أن يسبق UseAuthentication كل من UseRouting ويسبق UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
