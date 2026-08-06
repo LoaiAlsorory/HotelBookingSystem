@@ -64,8 +64,15 @@ public class RoomsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _service.DeleteAsync(id);
-        if (!deleted) return NotFound(new { message = $"الغرفة رقم {id} غير موجودة" });
-        return NoContent();
+        try
+        {
+            var deleted = await _service.DeleteAsync(id);
+            if (!deleted) return NotFound(new { message = $"الغرفة رقم {id} غير موجودة" });
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
     }
 }
