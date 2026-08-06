@@ -51,8 +51,15 @@ public class HotelsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _service.DeleteAsync(id);
-        if (!deleted) return NotFound(new { message = $"الفندق رقم {id} غير موجود" });
-        return NoContent();
+        try
+        {
+            var deleted = await _service.DeleteAsync(id);
+            if (!deleted) return NotFound(new { message = $"الفندق رقم {id} غير موجود" });
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
     }
 }
