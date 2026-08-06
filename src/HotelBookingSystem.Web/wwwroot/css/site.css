@@ -203,3 +203,65 @@ body {
     }
     .main-area { width: 100%; }
 }
+
+/* ---------- صفحة تسجيل الدخول ---------- */
+.auth-body {
+    background: linear-gradient(135deg, var(--hbs-secondary), var(--hbs-sidebar-bg));
+    min-height: 100vh;
+    margin: 0;
+}
+
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.auth-card {
+    background: #fff;
+    border-radius: var(--hbs-card-radius);
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 20px 45px rgba(0,0,0,.25);
+}
+
+.auth-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--hbs-primary);
+    margin-bottom: 6px;
+}
+
+.auth-subtitle {
+    text-align: center;
+    color: #6c757d;
+    font-size: .9rem;
+    margin-bottom: 20px;
+}
+
+.auth-hint {
+    margin-top: 18px;
+    font-size: .8rem;
+    color: #6c757d;
+    text-align: center;
+    background: var(--hbs-primary-light);
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+
+/* ---------- شريط المستخدم في الأعلى ---------- */
+.user-menu-btn {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #333;
+}

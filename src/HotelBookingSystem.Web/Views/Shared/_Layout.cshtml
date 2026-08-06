@@ -56,6 +56,17 @@
                     <i class="bi bi-list"></i>
                 </button>
                 <h5 class="mb-0">@ViewData["Title"]</h5>
+
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <span class="text-muted small">
+                        <i class="bi bi-person-circle"></i> @User.Identity?.Name
+                    </span>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i> خروج
+                        </button>
+                    </form>
+                </div>
             </header>
 
             <main class="content-area">
