@@ -13,6 +13,10 @@ public class DashboardViewModel
 
     public List<HotelDto> Hotels { get; set; } = new();
     public List<BookingDto> RecentBookings { get; set; } = new();
+
+    // بيانات عرض إضافية (للتصميم فقط - لا تغيّر أي منطق عمل) — أرخص سعر ليلة متاح لكل فندق
+    public Dictionary<int, decimal> HotelStartingPrice { get; set; } = new();
+    public Dictionary<int, int> HotelAvailableRoomsCount { get; set; } = new();
 }
 
 public class ErrorViewModel

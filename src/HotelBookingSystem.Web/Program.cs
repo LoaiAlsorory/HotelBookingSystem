@@ -116,100 +116,85 @@ public static class DbSeeder
 
         if (!await db.Hotels.AnyAsync())
         {
-            // نفس روابط الصور الأصلية التي كانت تعمل بنجاح في المشروع، نعيد استخدامها
-            // على كل الفنادق/الغرف الجديدة لضمان عدم كسر عرض الصور مطلقًا.
-            const string imgHotelA = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600";
-            const string imgHotelB = imgHotelA; // نفس الصورة الأصلية المؤكد عملها؛ تفاديًا لأي خطر كسر عرض الصور
-            const string imgRoomA = "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600";
-            const string imgRoomB = "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600";
-            const string imgRoomC = "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600";
-
-            var hotel1 = new Hotel
+            // مجموعة صور فنادق/غرف من Unsplash (روابط دائمة عبر معرّف الصورة — لا تعتمد على اسم مستخدم
+            // قد يتغيّر، وهي نفس النمط المستخدم أصلًا في المشروع). نكرر الاستخدام عبر عدة فنادق لضمان التنوّع
+            // البصري مع بقاء كل رابط من نفس المجموعة "الآمنة" لتفادي أي صورة مكسورة.
+            var hotelImages = new[]
             {
-                Name = "فندق الحكمة الدولي",
-                City = "صنعاء",
-                Address = "شارع الزبيري، صنعاء",
-                Description = "فندق فاخر خمس نجوم في قلب العاصمة صنعاء، يجمع بين الضيافة اليمنية الأصيلة والرفاهية العصرية.",
-                ImageUrl = imgHotelA,
-                Rating = 4.8
+                "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
+                "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800",
+                "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800",
+                "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800",
+                "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=800",
+                "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800",
+                "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800",
+                "https://images.unsplash.com/photo-1601565415267-724bbc5b3f3d?w=800",
             };
-            var hotel2 = new Hotel
+            var roomImages = new[]
             {
-                Name = "منتجع البحر الأحمر",
-                City = "الحديدة",
-                Address = "الكورنيش، الحديدة",
-                Description = "منتجع ساحلي مطل مباشرة على البحر الأحمر، بشواطئ خاصة وأجواء استوائية هادئة.",
-                ImageUrl = imgHotelB,
-                Rating = 4.5
-            };
-            var hotel3 = new Hotel
-            {
-                Name = "فندق قصر عدن",
-                City = "عدن",
-                Address = "خليج التواهي، عدن",
-                Description = "فندق تاريخي مطلّ على الميناء، يمزج بين العمارة الاستعمارية الأنيقة وخدمات الفنادق الحديثة.",
-                ImageUrl = imgHotelA,
-                Rating = 4.3
-            };
-            var hotel4 = new Hotel
-            {
-                Name = "منتجع تعز الجبلي",
-                City = "تعز",
-                Address = "سفح جبل صبر، تعز",
-                Description = "استراحة جبلية هادئة بإطلالات خلابة، مثالية للاسترخاء بعيدًا عن صخب المدينة.",
-                ImageUrl = imgHotelB,
-                Rating = 4.1
-            };
-            var hotel5 = new Hotel
-            {
-                Name = "فندق الخليج الذهبي",
-                City = "دبي",
-                Address = "نخلة جميرا، دبي",
-                Description = "تجربة إقامة استثنائية بلمسات ذهبية فاخرة وإطلالات بانورامية على الخليج العربي.",
-                ImageUrl = imgHotelA,
-                Rating = 4.9
-            };
-            var hotel6 = new Hotel
-            {
-                Name = "فندق النخيل الملكي",
-                City = "الرياض",
-                Address = "حي العليا، الرياض",
-                Description = "فندق أعمال وترفيه راقٍ في قلب العاصمة، قريب من أبرز المراكز التجارية.",
-                ImageUrl = imgHotelB,
-                Rating = 4.6
+                "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=700",
+                "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=700",
+                "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=700",
+                "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=700",
+                "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=700",
+                "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=700",
             };
 
-            db.Hotels.AddRange(hotel1, hotel2, hotel3, hotel4, hotel5, hotel6);
+            var hotels = new List<Hotel>
+            {
+                new() { Name = "فندق الحكمة الدولي",   City = "صنعاء",   Address = "شارع الزبيري، صنعاء",        Description = "فندق فاخر خمس نجوم في قلب العاصمة صنعاء، يجمع بين الضيافة اليمنية الأصيلة والرفاهية العصرية.", ImageUrl = hotelImages[0], Rating = 4.8 },
+                new() { Name = "منتجع البحر الأحمر",    City = "الحديدة",  Address = "الكورنيش، الحديدة",          Description = "منتجع ساحلي مطل مباشرة على البحر الأحمر، بشواطئ خاصة وأجواء استوائية هادئة.",              ImageUrl = hotelImages[1], Rating = 4.5 },
+                new() { Name = "فندق قصر عدن",         City = "عدن",      Address = "خليج التواهي، عدن",          Description = "فندق تاريخي مطلّ على الميناء، يمزج بين العمارة الاستعمارية الأنيقة وخدمات الفنادق الحديثة.",  ImageUrl = hotelImages[2], Rating = 4.3 },
+                new() { Name = "منتجع تعز الجبلي",     City = "تعز",       Address = "سفح جبل صبر، تعز",           Description = "استراحة جبلية هادئة بإطلالات خلابة، مثالية للاسترخاء بعيدًا عن صخب المدينة.",                ImageUrl = hotelImages[3], Rating = 4.1 },
+                new() { Name = "فندق الخليج الذهبي",    City = "دبي",       Address = "نخلة جميرا، دبي",            Description = "تجربة إقامة استثنائية بلمسات ذهبية فاخرة وإطلالات بانورامية على الخليج العربي.",             ImageUrl = hotelImages[4], Rating = 4.9 },
+                new() { Name = "فندق النخيل الملكي",    City = "الرياض",    Address = "حي العليا، الرياض",          Description = "فندق أعمال وترفيه راقٍ في قلب العاصمة، قريب من أبرز المراكز التجارية.",                     ImageUrl = hotelImages[5], Rating = 4.6 },
+                new() { Name = "فندق لؤلؤة جدة",       City = "جدة",       Address = "كورنيش جدة",                Description = "إطلالة ساحرة على البحر الأحمر مع شاطئ خاص ومسابح لا نهائية ومطاعم عالمية.",                  ImageUrl = hotelImages[6], Rating = 4.7 },
+                new() { Name = "فندق أبراج الدوحة",     City = "الدوحة",    Address = "منطقة اللؤلؤة، الدوحة",      Description = "برج فندقي عصري بتصميم معماري مذهل وخدمات كونسيرج فاخرة على مدار الساعة.",                    ImageUrl = hotelImages[7], Rating = 4.4 },
+                new() { Name = "فندق النيل الذهبي",     City = "القاهرة",   Address = "كورنيش النيل، القاهرة",      Description = "إقامة كلاسيكية فاخرة بإطلالة مباشرة على نهر النيل وقرب من أبرز المعالم التاريخية.",           ImageUrl = hotelImages[0], Rating = 4.2 },
+                new() { Name = "منتجع مسقط الفيروزي",   City = "مسقط",      Address = "خليج العرب، مسقط",           Description = "منتجع هادئ بين الجبال والبحر، مثالي لعطلة استرخاء عائلية بمرافق سبا متكاملة.",               ImageUrl = hotelImages[1], Rating = 4.6 },
+                new() { Name = "فندق برج الكويت",       City = "الكويت",    Address = "شارع الخليج العربي، الكويت", Description = "فندق أعمال حديث في قلب العاصمة، بقاعات مؤتمرات مجهزة وصالات تنفيذية راقية.",                 ImageUrl = hotelImages[2], Rating = 4.0 },
+                new() { Name = "فندق أرز بيروت",        City = "بيروت",     Address = "وسط البلد، بيروت",           Description = "سحر المتوسط وأصالة الضيافة اللبنانية في فندق بوتيك أنيق قرب أشهر الأسواق والمطاعم.",         ImageUrl = hotelImages[3], Rating = 4.5 },
+            };
+
+            db.Hotels.AddRange(hotels);
             await db.SaveChangesAsync();
 
-            db.Rooms.AddRange(
-                // فندق الحكمة الدولي - صنعاء
-                new Room { HotelId = hotel1.Id, RoomNumber = "101", RoomType = "مفردة", PricePerNight = 25000, Capacity = 1, IsAvailable = true, ImageUrl = imgRoomA },
-                new Room { HotelId = hotel1.Id, RoomNumber = "102", RoomType = "مزدوجة", PricePerNight = 40000, Capacity = 2, IsAvailable = true, ImageUrl = imgRoomB },
-                new Room { HotelId = hotel1.Id, RoomNumber = "103", RoomType = "جناح ملكي", PricePerNight = 95000, Capacity = 4, IsAvailable = true, ImageUrl = imgRoomC },
+            var roomTypes = new (string Type, decimal Base, int Cap)[]
+            {
+                ("مفردة كلاسيكية",      22000, 1),
+                ("مزدوجة قياسية",       38000, 2),
+                ("جناح ديلوكس",         75000, 3),
+                ("جناح عائلي",          58000, 5),
+                ("جناح تنفيذي",         98000, 3),
+                ("بنتهاوس فاخر",        190000, 6),
+            };
 
-                // منتجع البحر الأحمر - الحديدة
-                new Room { HotelId = hotel2.Id, RoomNumber = "201", RoomType = "جناح", PricePerNight = 70000, Capacity = 4, IsAvailable = true, ImageUrl = imgRoomC },
-                new Room { HotelId = hotel2.Id, RoomNumber = "202", RoomType = "مزدوجة إطلالة بحرية", PricePerNight = 55000, Capacity = 2, IsAvailable = true, ImageUrl = imgRoomB },
-                new Room { HotelId = hotel2.Id, RoomNumber = "203", RoomType = "مفردة", PricePerNight = 22000, Capacity = 1, IsAvailable = false, ImageUrl = imgRoomA },
+            var rnd = new Random(42); // بذرة ثابتة لضمان نفس النتائج في كل تشغيل
+            var rooms = new List<Room>();
 
-                // فندق قصر عدن
-                new Room { HotelId = hotel3.Id, RoomNumber = "301", RoomType = "مفردة", PricePerNight = 20000, Capacity = 1, IsAvailable = true, ImageUrl = imgRoomA },
-                new Room { HotelId = hotel3.Id, RoomNumber = "302", RoomType = "مزدوجة", PricePerNight = 35000, Capacity = 2, IsAvailable = true, ImageUrl = imgRoomB },
+            foreach (var hotel in hotels)
+            {
+                // كل فندق يحصل على 4 غرف متنوعة الأنواع والأسعار والصور
+                var picks = roomTypes.OrderBy(_ => rnd.Next()).Take(4).ToList();
+                var roomNoBase = (hotel.Id % 9 + 1) * 100;
+                for (int i = 0; i < picks.Count; i++)
+                {
+                    var (type, basePrice, cap) = picks[i];
+                    var priceJitter = 1 + (rnd.Next(-10, 16) / 100.0); // تفاوت طفيف بالسعر بين الفنادق
+                    rooms.Add(new Room
+                    {
+                        HotelId = hotel.Id,
+                        RoomNumber = (roomNoBase + i + 1).ToString(),
+                        RoomType = type,
+                        PricePerNight = Math.Round(basePrice * (decimal)priceJitter / 500m) * 500m,
+                        Capacity = cap,
+                        IsAvailable = rnd.Next(0, 10) > 1, // معظم الغرف متاحة، القليل محجوز لواقعية أكبر
+                        ImageUrl = roomImages[rnd.Next(roomImages.Length)]
+                    });
+                }
+            }
 
-                // منتجع تعز الجبلي
-                new Room { HotelId = hotel4.Id, RoomNumber = "401", RoomType = "شاليه عائلي", PricePerNight = 48000, Capacity = 5, IsAvailable = true, ImageUrl = imgRoomC },
-                new Room { HotelId = hotel4.Id, RoomNumber = "402", RoomType = "مزدوجة", PricePerNight = 30000, Capacity = 2, IsAvailable = true, ImageUrl = imgRoomB },
-
-                // فندق الخليج الذهبي - دبي
-                new Room { HotelId = hotel5.Id, RoomNumber = "501", RoomType = "جناح فاخر", PricePerNight = 150000, Capacity = 3, IsAvailable = true, ImageUrl = imgRoomC },
-                new Room { HotelId = hotel5.Id, RoomNumber = "502", RoomType = "مزدوجة ديلوكس", PricePerNight = 90000, Capacity = 2, IsAvailable = true, ImageUrl = imgRoomB },
-                new Room { HotelId = hotel5.Id, RoomNumber = "503", RoomType = "بنتهاوس", PricePerNight = 260000, Capacity = 6, IsAvailable = true, ImageUrl = imgRoomA },
-
-                // فندق النخيل الملكي - الرياض
-                new Room { HotelId = hotel6.Id, RoomNumber = "601", RoomType = "غرفة أعمال", PricePerNight = 60000, Capacity = 1, IsAvailable = true, ImageUrl = imgRoomA },
-                new Room { HotelId = hotel6.Id, RoomNumber = "602", RoomType = "جناح تنفيذي", PricePerNight = 110000, Capacity = 3, IsAvailable = true, ImageUrl = imgRoomC }
-            );
+            db.Rooms.AddRange(rooms);
             await db.SaveChangesAsync();
         }
     }

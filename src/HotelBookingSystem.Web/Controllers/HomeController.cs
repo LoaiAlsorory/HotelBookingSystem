@@ -38,7 +38,14 @@ public class HomeController : Controller
             BookingsCount = bookings.Count(),
             TotalRevenue = bookings.Where(b => b.Status != "Cancelled").Sum(b => b.TotalPrice),
             Hotels = hotels.ToList(),
-            RecentBookings = bookings.OrderByDescending(b => b.CreatedAt).Take(5).ToList()
+            RecentBookings = bookings.OrderByDescending(b => b.CreatedAt).Take(5).ToList(),
+            HotelStartingPrice = rooms
+                .GroupBy(r => r.HotelId)
+                .ToDictionary(g => g.Key, g => g.Min(r => r.PricePerNight)),
+            HotelAvailableRoomsCount = rooms
+                .Where(r => r.IsAvailable)
+                .GroupBy(r => r.HotelId)
+                .ToDictionary(g => g.Key, g => g.Count())
         };
 
         ViewData["Title"] = "لوحة التحكم";
