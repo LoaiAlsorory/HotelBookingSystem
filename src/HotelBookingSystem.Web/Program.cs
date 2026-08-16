@@ -54,10 +54,20 @@ builder.Services.AddInfrastructure(builder.Configuration);
 var app = builder.Build();
 
 // ---------- إنشاء/تحديث قاعدة البيانات وزرع بيانات تجريبية ----------
+// ملاحظة: عند تشغيل Web وAPI معًا (Multiple Startup Projects) قد يحاول كلاهما إنشاء نفس
+// القاعدة في نفس اللحظة (Race Condition)، فيفشل أحدهما بخطأ SQL "Database already exists"
+// رغم أن هذا يعني فعليًا أن الهدف (وجود القاعدة) قد تحقق. لذلك نلتقط هذا الخطأ تحديدًا ونتجاهله بأمان.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+    try
+    {
+        db.Database.EnsureCreated();
+    }
+    catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Message.Contains("already exists"))
+    {
+        // القاعدة أصبحت موجودة بالفعل (أنشأها مشروع آخر يعمل بالتوازي في نفس اللحظة) — لا خطأ فعلي هنا.
+    }
     await DbSeeder.SeedAsync(db);
 }
 
