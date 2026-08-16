@@ -42,7 +42,7 @@
                                 <tr>
                                     <td>@r.RoomNumber</td>
                                     <td>@r.RoomType</td>
-                                    <td>@r.PricePerNight.ToString("N0")</td>
+                                    <td>@r.PricePerNight.ToString("N0", CultureInfo.InvariantCulture)</td>
                                     <td>@r.Capacity</td>
                                     <td>
                                         @if (r.IsAvailable)

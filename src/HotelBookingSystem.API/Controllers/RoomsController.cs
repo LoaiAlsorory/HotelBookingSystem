@@ -1,11 +1,13 @@
 using HotelBookingSystem.Application.DTOs.Room;
 using HotelBookingSystem.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBookingSystem.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class RoomsController : ControllerBase
 {
     private readonly IRoomService _service;

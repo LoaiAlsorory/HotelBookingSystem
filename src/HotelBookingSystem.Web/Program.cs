@@ -1,13 +1,29 @@
+using System.Globalization;
 using HotelBookingSystem.Domain.Entities;
 using HotelBookingSystem.Domain.Enums;
 using HotelBookingSystem.Infrastructure;
 using HotelBookingSystem.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// إجبار التطبيق على استخدام التقويم الميلادي (Gregorian) دائمًا بغض النظر عن ثقافة نظام التشغيل،
+// لتفادي عرض التواريخ بالتقويم الهجري تلقائيًا في بعض بيئات Windows العربية.
+// (ملاحظة: هذا وحده لا يكفي دائمًا لأن Kestrel/IIS قد يعيد استخدام Thread Pool threads
+// تكوّنت ثقافتها من نظام التشغيل قبل هذا السطر؛ لذلك أضفنا أيضًا Middleware صريح أدناه
+// يفرض الثقافة على كل طلب HTTP بشكل مؤكد، بالإضافة إلى InvariantCulture الصريحة في الـ Views)
+var defaultCulture = new CultureInfo("en-US");
+CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture("en-US")
+    .AddSupportedCultures("en-US")
+    .AddSupportedUICultures("en-US");
 
 // ---------- Services ----------
 // كل الصفحات محمية تلقائياً (تتطلب تسجيل دخول) ما عدا ما يُعلَّم بـ [AllowAnonymous]
@@ -51,6 +67,9 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+// يفرض ثقافة en-US على كل طلب HTTP قادم بشكل مؤكد (يجب أن يكون من أوائل عناصر الـ Pipeline)
+app.UseRequestLocalization(localizationOptions);
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

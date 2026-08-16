@@ -80,37 +80,56 @@ public class BookingsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // GET: /Bookings/Edit/5  (تعديل الحالة فقط)
+    // GET: /Bookings/Edit/5  (تعديل كامل: الغرفة، التاريخ، عدد الضيوف، الحالة)
     public async Task<IActionResult> Edit(int id)
     {
         var booking = await _bookingService.GetByIdAsync(id);
         if (booking is null) return NotFound();
 
-        ViewData["Title"] = "تعديل حالة الحجز";
+        ViewData["Title"] = "تعديل الحجز";
         ViewBag.Booking = booking;
         ViewBag.StatusList = new SelectList(Enum.GetValues(typeof(BookingStatus)));
+        await PopulateDropdowns(selectedRoomId: booking.RoomId);
 
         var currentStatus = Enum.TryParse<BookingStatus>(booking.Status, out var st) ? st : BookingStatus.Pending;
-        return View(new UpdateBookingStatusDto { Status = currentStatus });
+        return View(new UpdateBookingDto
+        {
+            RoomId = booking.RoomId,
+            CheckInDate = booking.CheckInDate,
+            CheckOutDate = booking.CheckOutDate,
+            GuestsCount = booking.GuestsCount,
+            Status = currentStatus
+        });
     }
 
     // POST: /Bookings/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, UpdateBookingStatusDto dto)
+    public async Task<IActionResult> Edit(int id, UpdateBookingDto dto)
     {
-        ViewData["Title"] = "تعديل حالة الحجز";
+        ViewData["Title"] = "تعديل الحجز";
+        var existing = await _bookingService.GetByIdAsync(id);
+        if (existing is null) return NotFound();
+
         if (!ModelState.IsValid)
         {
-            ViewBag.Booking = await _bookingService.GetByIdAsync(id);
+            ViewBag.Booking = existing;
             ViewBag.StatusList = new SelectList(Enum.GetValues(typeof(BookingStatus)));
+            await PopulateDropdowns(selectedRoomId: dto.RoomId);
             return View(dto);
         }
 
-        var updated = await _bookingService.UpdateStatusAsync(id, dto);
-        if (!updated) return NotFound();
+        var result = await _bookingService.UpdateAsync(id, dto);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Error ?? "تعذّر تعديل الحجز");
+            ViewBag.Booking = existing;
+            ViewBag.StatusList = new SelectList(Enum.GetValues(typeof(BookingStatus)));
+            await PopulateDropdowns(selectedRoomId: dto.RoomId);
+            return View(dto);
+        }
 
-        TempData["Success"] = "تم تحديث حالة الحجز بنجاح";
+        TempData["Success"] = "تم تعديل الحجز بنجاح";
         return RedirectToAction(nameof(Index));
     }
 

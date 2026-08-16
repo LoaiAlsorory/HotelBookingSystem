@@ -83,6 +83,43 @@ public class BookingService : IBookingService
     }
 
 
+    public async Task<Result<BookingDto>> UpdateAsync(int id, UpdateBookingDto dto)
+    {
+        var booking = await _bookingRepo.GetByIdAsync(id);
+        if (booking is null)
+            return Result<BookingDto>.NotFound($"الحجز رقم {id} غير موجود");
+
+        // 1. التحقق من وجود الغرفة الجديدة (قد تكون تغيّرت)
+        var room = await _roomRepo.GetByIdAsync(dto.RoomId);
+        if (room is null)
+            return Result<BookingDto>.NotFound($"الغرفة رقم {dto.RoomId} غير موجودة");
+
+        // 2. سعة الغرفة
+        if (dto.GuestsCount > room.Capacity)
+            return Result<BookingDto>.BadRequest($"عدد الضيوف ({dto.GuestsCount}) يتجاوز سعة الغرفة القصوى ({room.Capacity} أفراد)");
+
+        // 3. منع تعارض الحجوزات مع أي حجز آخر لنفس الغرفة لنفس الفترة (باستثناء هذا الحجز نفسه)
+        var hasConflict = await _bookingRepo.HasConflictAsync(dto.RoomId, dto.CheckInDate, dto.CheckOutDate, id);
+        if (hasConflict)
+            return Result<BookingDto>.Conflict("الغرفة محجوزة بالفعل في هذه الفترة الزمنية");
+
+        var nights = (dto.CheckOutDate.Date - dto.CheckInDate.Date).Days;
+        if (nights <= 0) nights = 1;
+
+        booking.RoomId = dto.RoomId;
+        booking.CheckInDate = dto.CheckInDate;
+        booking.CheckOutDate = dto.CheckOutDate;
+        booking.GuestsCount = dto.GuestsCount;
+        booking.Status = dto.Status;
+        booking.TotalPrice = room.PricePerNight * nights;
+
+        await _bookingRepo.UpdateAsync(booking);
+
+        // إعادة التحميل مع بيانات الغرفة/الفندق المحدّثة لعرضها بشكل صحيح فورًا
+        var refreshed = await _bookingRepo.GetByIdAsync(id);
+        return Result<BookingDto>.Ok(ToDto(refreshed!));
+    }
+
     public async Task<bool> UpdateStatusAsync(int id, UpdateBookingStatusDto dto)
     {
         var booking = await _bookingRepo.GetByIdAsync(id);
