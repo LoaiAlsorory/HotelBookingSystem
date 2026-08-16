@@ -1,20 +1,34 @@
 @model DashboardViewModel
 @{
     ViewData["Title"] = "لوحة التحكم";
+
+    // مصفوفة أيقونات مرافق زخرفية (Bootstrap Icons) — للعرض فقط، تُختار دوريًا حسب معرّف الفندق
+    var amenityPool = new (string Icon, string Label)[]
+    {
+        ("bi-wifi", "واي فاي مجاني"),
+        ("bi-cup-hot", "إفطار مجاني"),
+        ("bi-water", "مسبح"),
+        ("bi-flower1", "سبا"),
+        ("bi-car-front", "موقف سيارات"),
+        ("bi-shield-check", "أمان تام"),
+    };
 }
 
 <div class="dashboard-hero">
+    <div class="hero-pattern"></div>
     <div class="row align-items-center g-3">
         <div class="col-lg-8">
-            <span class="hero-eyebrow"><i class="bi bi-stars"></i> نظام حجز الفنادق</span>
+            <span class="hero-stars">★ ★ ★ ★ ★</span>
+            <span class="hero-eyebrow"><i class="bi bi-stars"></i> نظام حجز الفنادق الفاخر</span>
             <h3>مرحبًا بعودتك@(string.IsNullOrEmpty(User.Identity?.Name) ? "" : "، " + User.Identity!.Name) 👋</h3>
-            <p>نظرة سريعة وأنيقة على أداء المنصة اليوم — كل ما تحتاج معرفته في مكان واحد.</p>
+            <p>نظرة سريعة وأنيقة على أداء المنصة اليوم — @Model.HotelsCount فندقًا و@Model.RoomsCount غرفة تحت إدارتك، كل ما تحتاج معرفته في مكان واحد.</p>
         </div>
         <div class="col-lg-4 text-lg-end">
-            <span class="hero-eyebrow"><i class="bi bi-cash-coin"></i> إجمالي الإيرادات</span>
-            <h3 class="mb-0">@Model.TotalRevenue.ToString("N0", CultureInfo.InvariantCulture) <small style="font-size:1rem;color:#CFCBEF;">ريال</small></h3>
+            <span class="hero-eyebrow justify-content-lg-end w-100"><i class="bi bi-cash-coin"></i> إجمالي الإيرادات</span>
+            <div class="hero-revenue">@Model.TotalRevenue.ToString("N0", CultureInfo.InvariantCulture) <small style="font-size:1rem;-webkit-text-fill-color:#CFCBEF;">ريال</small></div>
         </div>
     </div>
+    <div class="hero-divider"></div>
 </div>
 
 <div class="row g-3 mb-4">
@@ -56,64 +70,100 @@
     </div>
 </div>
 
-<div class="row g-3">
-    <div class="col-lg-7">
-        <div class="card mb-3">
-            <div class="card-header">
-                <i class="bi bi-building-fill me-1"></i> الفنادق المسجّلة
-            </div>
-            <div class="card-body">
-                @if (!Model.Hotels.Any())
-                {
-                    <p class="text-muted mb-0">لا توجد فنادق مسجّلة حاليًا.</p>
-                }
-                else
-                {
-                    <div class="row g-3">
-                        @foreach (var hotel in Model.Hotels)
-                        {
-                            <div class="col-md-6">
-                                <div class="card h-100 hover-card">
-                                    <img src="@(string.IsNullOrEmpty(hotel.ImageUrl) ? "https://placehold.co/400x200?text=Hotel" : hotel.ImageUrl)" class="card-img-top" style="height:140px;object-fit:cover;" alt="@hotel.Name" />
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">@hotel.Name</h6>
-                                        <p class="text-muted small mb-1"><i class="bi bi-geo-alt"></i> @hotel.City</p>
-                                        <p class="small mb-0"><i class="bi bi-star-fill text-warning"></i> @hotel.Rating &nbsp; | &nbsp; <i class="bi bi-door-open"></i> @hotel.RoomsCount غرفة</p>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
+<div class="section-heading">
+    <div>
+        <h5><span class="section-icon"><i class="bi bi-building-fill"></i></span> الفنادق المسجّلة</h5>
+        <span class="section-subtitle">@Model.HotelsCount فندقًا حول العالم بانتظار ضيوفك</span>
     </div>
+    <a asp-controller="Hotels" asp-action="Index" class="btn btn-outline-primary btn-sm">
+        عرض الكل <i class="bi bi-arrow-left"></i>
+    </a>
+</div>
 
-    <div class="col-lg-5">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-journal-check me-1"></i> أحدث الحجوزات</span>
-                <span class="badge bg-primary-subtle text-primary">آخر 5 حجوزات</span>
-            </div>
-            <ul class="list-group list-group-flush">
-                @if (!Model.RecentBookings.Any())
-                {
-                    <li class="list-group-item text-muted">لا توجد حجوزات بعد.</li>
-                }
-                else
-                {
-                    @foreach (var b in Model.RecentBookings)
+@if (!Model.Hotels.Any())
+{
+    <p class="text-muted mb-4">لا توجد فنادق مسجّلة حاليًا.</p>
+}
+else
+{
+    <div class="hotel-gallery mb-4">
+        @foreach (var hotel in Model.Hotels)
+        {
+            var fullStars = (int)Math.Round(hotel.Rating, MidpointRounding.AwayFromZero);
+            var hasPrice = Model.HotelStartingPrice.TryGetValue(hotel.Id, out var startingPrice) && startingPrice > 0;
+            var availableCount = Model.HotelAvailableRoomsCount.TryGetValue(hotel.Id, out var avc) ? avc : 0;
+            var a1 = amenityPool[hotel.Id % amenityPool.Length];
+            var a2 = amenityPool[(hotel.Id + 2) % amenityPool.Length];
+
+            <a asp-controller="Hotels" asp-action="Details" asp-route-id="@hotel.Id" class="hotel-card">
+                <div class="hotel-card-img-wrap">
+                    <img src="@(string.IsNullOrEmpty(hotel.ImageUrl) ? "https://placehold.co/400x200?text=Hotel" : hotel.ImageUrl)" alt="@hotel.Name" loading="lazy" />
+                    @if (hotel.Rating >= 4.6)
                     {
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="fw-semibold">@b.UserName</div>
-                                <small class="text-muted">@b.HotelName - غرفة @b.RoomNumber</small>
-                            </div>
-                            <span class="badge badge-status-@b.Status.ToLower()">@b.Status</span>
-                        </li>
+                        <span class="hotel-card-badge badge-featured"><i class="bi bi-award-fill"></i> الأعلى تقييمًا</span>
                     }
-                }
-            </ul>
-        </div>
+                    @if (hasPrice)
+                    {
+                        <span class="hotel-card-badge badge-price">ابتداءً من @startingPrice.ToString("N0", CultureInfo.InvariantCulture) ر.ي</span>
+                    }
+                    <span class="hotel-card-city-pin"><i class="bi bi-geo-alt-fill"></i> @hotel.City</span>
+                </div>
+                <div class="hotel-card-body">
+                    <h6 class="hotel-card-title">@hotel.Name</h6>
+                    <div class="star-rating">
+                        @for (int s = 1; s <= 5; s++)
+                        {
+                            <i class="bi @(s <= fullStars ? "bi-star-fill" : "bi-star")"></i>
+                        }
+                        <span class="rating-value">@hotel.Rating.ToString("0.0", CultureInfo.InvariantCulture)</span>
+                    </div>
+                    <div class="hotel-card-amenities">
+                        <span class="amenity-chip"><i class="bi @a1.Icon"></i> @a1.Label</span>
+                        <span class="amenity-chip"><i class="bi @a2.Icon"></i> @a2.Label</span>
+                    </div>
+                    <div class="hotel-card-footer-row">
+                        <span class="rooms-count"><i class="bi bi-door-open"></i> @hotel.RoomsCount غرفة @(availableCount > 0 ? $"· {availableCount} متاحة" : "")</span>
+                        <span class="view-link">التفاصيل <i class="bi bi-arrow-left"></i></span>
+                    </div>
+                </div>
+            </a>
+        }
     </div>
+}
+
+<div class="section-heading">
+    <div>
+        <h5><span class="section-icon"><i class="bi bi-journal-check"></i></span> أحدث الحجوزات</h5>
+        <span class="section-subtitle">آخر 5 عمليات حجز على المنصة</span>
+    </div>
+    <a asp-controller="Bookings" asp-action="Index" class="btn btn-outline-primary btn-sm">
+        عرض الكل <i class="bi bi-arrow-left"></i>
+    </a>
+</div>
+
+<div class="card">
+    <ul class="list-group list-group-flush">
+        @if (!Model.RecentBookings.Any())
+        {
+            <li class="list-group-item text-muted">لا توجد حجوزات بعد.</li>
+        }
+        else
+        {
+            @foreach (var b in Model.RecentBookings)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width:40px;height:40px;flex-shrink:0;">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <div>
+                            <div class="fw-semibold">@b.UserName</div>
+                            <small class="text-muted">@b.HotelName - غرفة @b.RoomNumber</small>
+                        </div>
+                    </div>
+                    <span class="badge badge-status-@b.Status.ToLower()">@b.Status</span>
+                </li>
+            }
+        }
+    </ul>
 </div>

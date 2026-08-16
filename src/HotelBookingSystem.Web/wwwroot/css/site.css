@@ -44,6 +44,9 @@
     --hbs-shadow-lg: 0 28px 64px -14px rgba(30, 27, 75, .35);
 
     --hbs-font: 'Cairo', sans-serif;
+
+    /* ---- تدرّج فاخر إضافي (للبطاقات المميزة / Featured) ---- */
+    --hbs-gradient-aurora: linear-gradient(135deg, #4338CA 0%, #7C3AED 45%, #C026D3 100%);
 }
 
 * { font-family: var(--hbs-font); box-sizing: border-box; }
@@ -239,34 +242,56 @@ html[dir="rtl"] .sidebar-nav .nav-link:hover { transform: translateX(2px); }
     overflow: hidden;
     background: var(--hbs-gradient-dark);
     border-radius: var(--hbs-card-radius);
-    padding: 34px 32px;
+    padding: 38px 36px;
     color: #fff;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
     box-shadow: var(--hbs-shadow-lg);
+}
+
+/* نمط زخرفي هادئ من نقاط دقيقة يضيف عمقًا دون تشتيت الانتباه */
+.dashboard-hero .hero-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, .07) 1.4px, transparent 1.4px);
+    background-size: 22px 22px;
+    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.5), transparent 75%);
+    mask-image: linear-gradient(180deg, rgba(0,0,0,.5), transparent 75%);
+    pointer-events: none;
 }
 
 .dashboard-hero::before {
     content: '';
     position: absolute;
-    width: 340px;
-    height: 340px;
+    width: 380px;
+    height: 380px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(144, 97, 249, .45), transparent 70%);
-    top: -140px;
-    inset-inline-end: -80px;
+    background: radial-gradient(circle, rgba(144, 97, 249, .5), transparent 70%);
+    top: -150px;
+    inset-inline-end: -90px;
     pointer-events: none;
+    animation: hbs-float-glow 9s ease-in-out infinite;
 }
 
 .dashboard-hero::after {
     content: '';
     position: absolute;
-    width: 260px;
-    height: 260px;
+    width: 280px;
+    height: 280px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(201, 151, 31, .3), transparent 70%);
-    bottom: -120px;
-    inset-inline-start: -60px;
+    background: radial-gradient(circle, rgba(201, 151, 31, .32), transparent 70%);
+    bottom: -130px;
+    inset-inline-start: -70px;
     pointer-events: none;
+    animation: hbs-float-glow 11s ease-in-out infinite reverse;
+}
+
+@keyframes hbs-float-glow {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-18px, 14px) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-hero::before, .dashboard-hero::after { animation: none; }
 }
 
 .dashboard-hero > * { position: relative; z-index: 1; }
@@ -278,20 +303,46 @@ html[dir="rtl"] .sidebar-nav .nav-link:hover { transform: translateX(2px); }
     color: #F4C752;
     font-weight: 700;
     font-size: .82rem;
-    letter-spacing: .3px;
-    margin-bottom: 8px;
+    letter-spacing: .4px;
+    margin-bottom: 10px;
+}
+
+.dashboard-hero .hero-stars {
+    color: #F4C752;
+    letter-spacing: 3px;
+    font-size: .78rem;
+    display: block;
+    margin-bottom: 6px;
 }
 
 .dashboard-hero h3 {
     color: #fff;
     font-weight: 800;
     margin-bottom: 4px;
+    font-size: 1.7rem;
 }
 
 .dashboard-hero p {
     color: #CFCBEF;
     margin-bottom: 0;
     font-size: .95rem;
+}
+
+.dashboard-hero .hero-revenue {
+    font-weight: 900;
+    font-size: 2.1rem;
+    background: linear-gradient(135deg, #FFE9B0 0%, #F4C752 60%, #E7B23E 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: .3px;
+}
+
+.dashboard-hero .hero-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+    margin: 22px 0 0;
 }
 
 /* ---------- بطاقات الإحصائيات (Stat cards) ---------- */
@@ -325,6 +376,10 @@ html[dir="rtl"] .sidebar-nav .nav-link:hover { transform: translateX(2px); }
     box-shadow: var(--hbs-shadow);
 }
 
+.stat-card:hover .stat-icon {
+    transform: scale(1.08) rotate(-4deg);
+}
+
 .stat-card .stat-icon {
     display: flex;
     align-items: center;
@@ -337,6 +392,7 @@ html[dir="rtl"] .sidebar-nav .nav-link:hover { transform: translateX(2px); }
     font-size: 1.5rem;
     opacity: 1;
     flex-shrink: 0;
+    transition: transform .3s ease;
 }
 
 .stat-card .stat-value {
@@ -397,6 +453,221 @@ html[dir="rtl"] .sidebar-nav .nav-link:hover { transform: translateX(2px); }
 }
 .hover-card img { transition: transform .4s ease; }
 .hover-card:hover img { transform: scale(1.06); }
+
+/* ---------- معرض بطاقات الفنادق (لوحة التحكم) ---------- */
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.section-heading h5 {
+    font-weight: 800;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-heading .section-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: var(--hbs-gradient-brand);
+    color: #fff;
+    font-size: 1.05rem;
+}
+
+.section-heading .section-subtitle {
+    color: var(--hbs-text-muted);
+    font-size: .85rem;
+    font-weight: 600;
+    margin-inline-start: 48px;
+    display: block;
+    margin-top: 2px;
+}
+
+.hotel-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+    gap: 18px;
+}
+
+.hotel-card {
+    background: var(--hbs-surface);
+    border: 1px solid var(--hbs-border);
+    border-radius: var(--hbs-card-radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--hbs-shadow-sm);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease, border-color .35s ease;
+    position: relative;
+}
+
+.hotel-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--hbs-shadow-lg);
+    border-color: transparent;
+    color: inherit;
+}
+
+.hotel-card-img-wrap {
+    position: relative;
+    height: 172px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.hotel-card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .6s cubic-bezier(.2,.8,.2,1);
+}
+
+.hotel-card:hover .hotel-card-img-wrap img {
+    transform: scale(1.12);
+}
+
+.hotel-card-img-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(30,27,75,0) 45%, rgba(20,17,58,.82) 100%);
+}
+
+.hotel-card-badge {
+    position: absolute;
+    top: 12px;
+    z-index: 2;
+    font-size: .74rem;
+    font-weight: 800;
+    padding: 5px 11px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(6px);
+}
+
+.hotel-card-badge.badge-featured {
+    inset-inline-start: 12px;
+    background: var(--hbs-gradient-gold);
+    color: #3D2B00;
+    box-shadow: 0 6px 14px -4px rgba(201, 151, 31, .6);
+}
+
+.hotel-card-badge.badge-price {
+    inset-inline-end: 12px;
+    background: rgba(255, 255, 255, .92);
+    color: var(--hbs-primary-700);
+}
+
+.hotel-card-city-pin {
+    position: absolute;
+    bottom: 10px;
+    inset-inline-start: 14px;
+    z-index: 2;
+    color: #fff;
+    font-size: .82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-shadow: 0 1px 6px rgba(0,0,0,.4);
+}
+
+.hotel-card-body {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.hotel-card-title {
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--hbs-ink);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.star-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: #E7B23E;
+    font-size: .78rem;
+}
+
+.star-rating .rating-value {
+    color: var(--hbs-ink);
+    font-weight: 800;
+    font-size: .84rem;
+    margin-inline-start: 3px;
+}
+
+.hotel-card-amenities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.amenity-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--hbs-primary-lighter);
+    color: var(--hbs-primary-700);
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.hotel-card-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px dashed var(--hbs-border);
+    font-size: .78rem;
+    color: var(--hbs-text-muted);
+    font-weight: 600;
+}
+
+.hotel-card-footer-row .rooms-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.hotel-card-footer-row .view-link {
+    color: var(--hbs-primary);
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: gap .2s ease;
+}
+
+.hotel-card:hover .hotel-card-footer-row .view-link {
+    gap: 7px;
+}
 
 /* ---------- الأزرار ---------- */
 .btn {
