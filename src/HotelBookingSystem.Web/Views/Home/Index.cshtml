@@ -161,7 +161,7 @@ else
                             <small class="text-muted">@b.HotelName - غرفة @b.RoomNumber</small>
                         </div>
                     </div>
-                    <span class="badge badge-status-@b.Status.ToLower()">@b.Status</span>
+                    <span class="badge badge-status-@b.Status.ToLower()">@BookingStatusDisplay.ToArabic(b.Status)</span>
                 </li>
             }
         }

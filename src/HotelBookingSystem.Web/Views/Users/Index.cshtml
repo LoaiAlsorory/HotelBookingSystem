@@ -32,7 +32,7 @@
                         <td>@user.FullName</td>
                         <td>@user.Email</td>
                         <td>@(user.PhoneNumber ?? "-")</td>
-                        <td><span class="badge bg-secondary">@user.Role</span></td>
+                        <td><span class="badge bg-secondary">@UserRoleDisplay.ToArabic(user.Role)</span></td>
                         <td>@user.CreatedAt.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</td>
                         <td class="text-center">
                             <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-outline-secondary" title="التفاصيل"><i class="bi bi-eye"></i></a>

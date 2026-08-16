@@ -19,6 +19,16 @@ public class BookingsController : Controller
         _roomService = roomService;
     }
 
+    // قائمة حالات الحجز بتسميات عربية للعرض في القائمة المنسدلة — القيمة المُرسَلة (Value) تبقى
+    // نفس اسم الـ enum بالإنجليزية (Pending/Confirmed/...) حتى يستمر الربط (Model Binding) يعمل تمامًا
+    // كما كان، هذا تغيير عرضي بحت في نص القائمة (Text) فقط.
+    private static SelectList BuildStatusList(BookingStatus? selected = null) =>
+        new SelectList(
+            Enum.GetValues(typeof(BookingStatus))
+                .Cast<BookingStatus>()
+                .Select(s => new { Value = s.ToString(), Text = HotelBookingSystem.Web.Models.BookingStatusDisplay.ToArabic(s.ToString()) }),
+            "Value", "Text", selected?.ToString());
+
     private async Task PopulateDropdowns(int? selectedUserId = null, int? selectedRoomId = null)
     {
         var users = await _userService.GetAllAsync();
@@ -88,10 +98,10 @@ public class BookingsController : Controller
 
         ViewData["Title"] = "تعديل الحجز";
         ViewBag.Booking = booking;
-        ViewBag.StatusList = new SelectList(Enum.GetValues(typeof(BookingStatus)));
         await PopulateDropdowns(selectedRoomId: booking.RoomId);
 
         var currentStatus = Enum.TryParse<BookingStatus>(booking.Status, out var st) ? st : BookingStatus.Pending;
+        ViewBag.StatusList = BuildStatusList(currentStatus);
         return View(new UpdateBookingDto
         {
             RoomId = booking.RoomId,
@@ -114,7 +124,7 @@ public class BookingsController : Controller
         if (!ModelState.IsValid)
         {
             ViewBag.Booking = existing;
-            ViewBag.StatusList = new SelectList(Enum.GetValues(typeof(BookingStatus)));
+            ViewBag.StatusList = BuildStatusList(dto.Status);
             await PopulateDropdowns(selectedRoomId: dto.RoomId);
             return View(dto);
         }
@@ -124,7 +134,7 @@ public class BookingsController : Controller
         {
             ModelState.AddModelError(string.Empty, result.Error ?? "تعذّر تعديل الحجز");
             ViewBag.Booking = existing;
-            ViewBag.StatusList = new SelectList(Enum.GetValues(typeof(BookingStatus)));
+            ViewBag.StatusList = BuildStatusList(dto.Status);
             await PopulateDropdowns(selectedRoomId: dto.RoomId);
             return View(dto);
         }

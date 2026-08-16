@@ -10,7 +10,7 @@
         <dl class="row mb-0">
             <dt class="col-sm-4">الاسم الكامل</dt><dd class="col-sm-8">@Model.FullName</dd>
             <dt class="col-sm-4">البريد الإلكتروني</dt><dd class="col-sm-8">@Model.Email</dd>
-            <dt class="col-sm-4">الدور</dt><dd class="col-sm-8">@Model.Role</dd>
+            <dt class="col-sm-4">الدور</dt><dd class="col-sm-8">@UserRoleDisplay.ToArabic(Model.Role)</dd>
         </dl>
     </div>
     <div class="card-footer d-flex gap-2">
