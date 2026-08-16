@@ -84,10 +84,21 @@ var app = builder.Build();
 // ---------- إنشاء قاعدة البيانات إن لم تكن موجودة ----------
 // ملاحظة: البذر الفعلي للبيانات التجريبية يتم من مشروع Web (Program.cs) عند تشغيله،
 // لكن هذا السطر يضمن عدم فشل الـ API لو تم تشغيله بمفرده قبل تشغيل الـ Web مرة واحدة على الأقل.
+// ملاحظة إضافية: عند تشغيل API وWeb معًا (Multiple Startup Projects) قد يحاول كلاهما
+// إنشاء نفس القاعدة في نفس اللحظة (Race Condition)، فيفشل أحدهما بخطأ SQL "Database already
+// exists" رغم أن هذا يعني فعليًا أن الهدف (وجود القاعدة) قد تحقق. لذلك نلتقط هذا الخطأ تحديدًا
+// ونتجاهله بأمان دون التأثير على أي منطق آخر.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+    try
+    {
+        db.Database.EnsureCreated();
+    }
+    catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Message.Contains("already exists"))
+    {
+        // القاعدة أصبحت موجودة بالفعل (أنشأها مشروع آخر يعمل بالتوازي في نفس اللحظة) — لا خطأ فعلي هنا.
+    }
 }
 
 // ---------- Middleware Pipeline ----------
