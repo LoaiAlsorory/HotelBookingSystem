@@ -10,12 +10,12 @@
             <dt class="col-sm-4">المستخدم</dt><dd class="col-sm-8">@Model.UserName</dd>
             <dt class="col-sm-4">الفندق</dt><dd class="col-sm-8">@Model.HotelName</dd>
             <dt class="col-sm-4">رقم الغرفة</dt><dd class="col-sm-8">@Model.RoomNumber</dd>
-            <dt class="col-sm-4">تاريخ الدخول</dt><dd class="col-sm-8">@Model.CheckInDate.ToString("yyyy-MM-dd")</dd>
-            <dt class="col-sm-4">تاريخ الخروج</dt><dd class="col-sm-8">@Model.CheckOutDate.ToString("yyyy-MM-dd")</dd>
+            <dt class="col-sm-4">تاريخ الدخول</dt><dd class="col-sm-8">@Model.CheckInDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</dd>
+            <dt class="col-sm-4">تاريخ الخروج</dt><dd class="col-sm-8">@Model.CheckOutDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</dd>
             <dt class="col-sm-4">عدد الضيوف</dt><dd class="col-sm-8">@Model.GuestsCount</dd>
-            <dt class="col-sm-4">الإجمالي</dt><dd class="col-sm-8">@Model.TotalPrice.ToString("N0") ريال</dd>
+            <dt class="col-sm-4">الإجمالي</dt><dd class="col-sm-8">@Model.TotalPrice.ToString("N0", CultureInfo.InvariantCulture) ريال</dd>
             <dt class="col-sm-4">الحالة</dt><dd class="col-sm-8"><span class="badge badge-status-@Model.Status.ToLower()">@Model.Status</span></dd>
-            <dt class="col-sm-4">تاريخ الإنشاء</dt><dd class="col-sm-8">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+            <dt class="col-sm-4">تاريخ الإنشاء</dt><dd class="col-sm-8">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)</dd>
         </dl>
     </div>
     <div class="card-footer d-flex gap-2">

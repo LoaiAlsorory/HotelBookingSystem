@@ -33,10 +33,10 @@
                         <td>@b.Id</td>
                         <td>@b.UserName</td>
                         <td>@b.HotelName - @b.RoomNumber</td>
-                        <td>@b.CheckInDate.ToString("yyyy-MM-dd")</td>
-                        <td>@b.CheckOutDate.ToString("yyyy-MM-dd")</td>
+                        <td>@b.CheckInDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</td>
+                        <td>@b.CheckOutDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</td>
                         <td>@b.GuestsCount</td>
-                        <td>@b.TotalPrice.ToString("N0")</td>
+                        <td>@b.TotalPrice.ToString("N0", CultureInfo.InvariantCulture)</td>
                         <td><span class="badge badge-status-@b.Status.ToLower()">@b.Status</span></td>
                         <td class="text-center">
                             <a asp-action="Details" asp-route-id="@b.Id" class="btn btn-sm btn-outline-secondary" title="التفاصيل"><i class="bi bi-eye"></i></a>

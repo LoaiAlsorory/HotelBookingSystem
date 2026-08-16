@@ -10,7 +10,7 @@
             <dt class="col-sm-4">الفندق</dt><dd class="col-sm-8">@Model.HotelName</dd>
             <dt class="col-sm-4">رقم الغرفة</dt><dd class="col-sm-8">@Model.RoomNumber</dd>
             <dt class="col-sm-4">النوع</dt><dd class="col-sm-8">@Model.RoomType</dd>
-            <dt class="col-sm-4">السعر لكل ليلة</dt><dd class="col-sm-8">@Model.PricePerNight.ToString("N0") ريال</dd>
+            <dt class="col-sm-4">السعر لكل ليلة</dt><dd class="col-sm-8">@Model.PricePerNight.ToString("N0", CultureInfo.InvariantCulture) ريال</dd>
             <dt class="col-sm-4">السعة</dt><dd class="col-sm-8">@Model.Capacity أفراد</dd>
             <dt class="col-sm-4">الحالة</dt>
             <dd class="col-sm-8">

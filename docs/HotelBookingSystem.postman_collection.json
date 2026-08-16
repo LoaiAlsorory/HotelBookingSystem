@@ -1,0 +1,383 @@
+{
+  "info": {
+    "name": "HotelBookingSystem API",
+    "description": "توثيق واختبار API لمشروع نظام حجز الفنادق - W6",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://localhost:7000" },
+    { "key": "token", "value": "" },
+    { "key": "hotelId", "value": "1" },
+    { "key": "roomId", "value": "1" },
+    { "key": "userId", "value": "1" },
+    { "key": "bookingId", "value": "1" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register - نجاح",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Test User\",\n  \"email\": \"test.user{{$randomInt}}@example.com\",\n  \"password\": \"Passw0rd!\",\n  \"phoneNumber\": \"0500000000\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200/201', function () { pm.expect([200,201]).to.include(pm.response.code); });",
+                  "var json = pm.response.json();",
+                  "if (json.token) { pm.collectionVariables.set('token', json.token); }",
+                  "pm.test('Response has token', function () { pm.expect(json.token).to.exist; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register - فشل (بريد مكرر)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Test User\",\n  \"email\": \"admin@hotel.com\",\n  \"password\": \"Passw0rd!\",\n  \"phoneNumber\": \"0500000000\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 409 Conflict (بريد مستخدم مسبقاً)', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register - فشل (بيانات ناقصة)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"\",\n  \"email\": \"not-an-email\",\n  \"password\": \"123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - نجاح",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@hotel.com\",\n  \"password\": \"Passw0rd!\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "if (json.token) { pm.collectionVariables.set('token', json.token); }",
+                  "pm.test('Token returned', function () { pm.expect(json.token).to.exist; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - فشل (كلمة مرور خاطئة)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@hotel.com\",\n  \"password\": \"WrongPassword\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hotels",
+      "item": [
+        {
+          "name": "Get All Hotels - نجاح",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/hotels" },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', function(){ pm.response.to.have.status(200); });",
+            "pm.test('Response is array', function(){ pm.expect(pm.response.json()).to.be.an('array'); });"
+          ]}}]
+        },
+        {
+          "name": "Get Hotel By Id - نجاح",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/hotels/{{hotelId}}" },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', function(){ pm.response.to.have.status(200); });"
+          ]}}]
+        },
+        {
+          "name": "Get Hotel By Id - فشل (غير موجود)",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/hotels/999999" },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 404 Not Found', function(){ pm.response.to.have.status(404); });"
+          ]}}]
+        },
+        {
+          "name": "Create Hotel - نجاح",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/hotels",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"فندق الحكمة\",\n  \"city\": \"صنعاء\",\n  \"address\": \"شارع الجامعة\",\n  \"description\": \"فندق تجريبي\",\n  \"imageUrl\": \"https://example.com/hotel.jpg\",\n  \"rating\": 4.5\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201 Created', function(){ pm.response.to.have.status(201); });",
+            "var json = pm.response.json();",
+            "if (json.id) { pm.collectionVariables.set('hotelId', json.id); }"
+          ]}}]
+        },
+        {
+          "name": "Create Hotel - فشل (حقول ناقصة)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/hotels",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"\",\n  \"rating\": 10\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 400 Bad Request', function(){ pm.response.to.have.status(400); });"
+          ]}}]
+        },
+        {
+          "name": "Update Hotel - نجاح",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/hotels/{{hotelId}}",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"فندق الحكمة المحدث\",\n  \"city\": \"صنعاء\",\n  \"address\": \"شارع الجامعة\",\n  \"description\": \"تحديث\",\n  \"imageUrl\": \"https://example.com/hotel.jpg\",\n  \"rating\": 5\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 204 No Content', function(){ pm.response.to.have.status(204); });"
+          ]}}]
+        },
+        {
+          "name": "Delete Hotel - فشل (تعارض غرف مرتبطة)",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/hotels/{{hotelId}}" },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 409 Conflict OR 204 if no rooms', function(){ pm.expect([204,409]).to.include(pm.response.code); });"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "Rooms",
+      "item": [
+        {
+          "name": "Get All Rooms (by hotelId) - نجاح",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/rooms?hotelId={{hotelId}}" },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', function(){ pm.response.to.have.status(200); });"
+          ]}}]
+        },
+        {
+          "name": "Create Room - نجاح",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/rooms",
+            "body": { "mode": "raw", "raw": "{\n  \"hotelId\": {{hotelId}},\n  \"roomNumber\": \"101\",\n  \"roomType\": \"مزدوجة\",\n  \"pricePerNight\": 150,\n  \"capacity\": 2,\n  \"imageUrl\": \"https://example.com/room.jpg\",\n  \"isAvailable\": true\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201 Created', function(){ pm.response.to.have.status(201); });",
+            "var json = pm.response.json();",
+            "if (json.id) { pm.collectionVariables.set('roomId', json.id); }"
+          ]}}]
+        },
+        {
+          "name": "Create Room - فشل (فندق غير موجود)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/rooms",
+            "body": { "mode": "raw", "raw": "{\n  \"hotelId\": 999999,\n  \"roomNumber\": \"999\",\n  \"roomType\": \"مزدوجة\",\n  \"pricePerNight\": 150,\n  \"capacity\": 2\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 404 Not Found', function(){ pm.response.to.have.status(404); });"
+          ]}}]
+        },
+        {
+          "name": "Update Room - نجاح",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/rooms/{{roomId}}",
+            "body": { "mode": "raw", "raw": "{\n  \"roomNumber\": \"101-A\",\n  \"roomType\": \"مزدوجة\",\n  \"pricePerNight\": 175,\n  \"capacity\": 2,\n  \"imageUrl\": \"https://example.com/room.jpg\",\n  \"isAvailable\": true\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 204 No Content', function(){ pm.response.to.have.status(204); });"
+          ]}}]
+        },
+        {
+          "name": "Delete Room - نجاح/تعارض",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/rooms/{{roomId}}" },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 204 or 409', function(){ pm.expect([204,409]).to.include(pm.response.code); });"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create Booking - نجاح",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/bookings",
+            "body": { "mode": "raw", "raw": "{\n  \"userId\": {{userId}},\n  \"roomId\": {{roomId}},\n  \"checkInDate\": \"2026-09-10\",\n  \"checkOutDate\": \"2026-09-15\",\n  \"guestsCount\": 2\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201 Created', function(){ pm.response.to.have.status(201); });",
+            "var json = pm.response.json();",
+            "if (json.id) { pm.collectionVariables.set('bookingId', json.id); }"
+          ]}}]
+        },
+        {
+          "name": "Create Booking - فشل (خروج قبل دخول)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/bookings",
+            "body": { "mode": "raw", "raw": "{\n  \"userId\": {{userId}},\n  \"roomId\": {{roomId}},\n  \"checkInDate\": \"2026-09-15\",\n  \"checkOutDate\": \"2026-09-10\",\n  \"guestsCount\": 2\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 400 Bad Request', function(){ pm.response.to.have.status(400); });"
+          ]}}]
+        },
+        {
+          "name": "Create Booking - فشل (تعارض حجز لنفس الغرفة)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/bookings",
+            "body": { "mode": "raw", "raw": "{\n  \"userId\": {{userId}},\n  \"roomId\": {{roomId}},\n  \"checkInDate\": \"2026-09-11\",\n  \"checkOutDate\": \"2026-09-13\",\n  \"guestsCount\": 2\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 409 Conflict', function(){ pm.response.to.have.status(409); });"
+          ]}}]
+        },
+        {
+          "name": "Create Booking - فشل (تجاوز سعة الغرفة)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/bookings",
+            "body": { "mode": "raw", "raw": "{\n  \"userId\": {{userId}},\n  \"roomId\": {{roomId}},\n  \"checkInDate\": \"2026-10-01\",\n  \"checkOutDate\": \"2026-10-03\",\n  \"guestsCount\": 99\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 400 Bad Request', function(){ pm.response.to.have.status(400); });"
+          ]}}]
+        },
+        {
+          "name": "Get Bookings by userId - نجاح",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/bookings?userId={{userId}}" },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', function(){ pm.response.to.have.status(200); });"
+          ]}}]
+        },
+        {
+          "name": "Update Booking Status - نجاح",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/bookings/{{bookingId}}/status",
+            "body": { "mode": "raw", "raw": "{\n  \"status\": 1\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 204 No Content', function(){ pm.response.to.have.status(204); });"
+          ]}}]
+        },
+        {
+          "name": "Delete Booking - نجاح",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/bookings/{{bookingId}}" },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 204 No Content', function(){ pm.response.to.have.status(204); });"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users - نجاح",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/users" },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', function(){ pm.response.to.have.status(200); });"
+          ]}}]
+        },
+        {
+          "name": "Create User - فشل (بريد مكرر)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/users",
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Duplicate Test\",\n  \"email\": \"admin@hotel.com\",\n  \"password\": \"Passw0rd!\",\n  \"phoneNumber\": \"0500000000\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 409 Conflict', function(){ pm.response.to.have.status(409); });"
+          ]}}]
+        },
+        {
+          "name": "Get User By Id - فشل (غير موجود)",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/users/999999" },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 404 Not Found', function(){ pm.response.to.have.status(404); });"
+          ]}}]
+        }
+      ]
+    }
+  ]
+}

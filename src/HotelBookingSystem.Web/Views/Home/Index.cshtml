@@ -79,7 +79,7 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-journal-check me-1"></i> أحدث الحجوزات</span>
-                <span class="fw-bold text-success">إجمالي الإيرادات: @Model.TotalRevenue.ToString("N0") ريال</span>
+                <span class="fw-bold text-success">إجمالي الإيرادات: @Model.TotalRevenue.ToString("N0", CultureInfo.InvariantCulture) ريال</span>
             </div>
             <ul class="list-group list-group-flush">
                 @if (!Model.RecentBookings.Any())
