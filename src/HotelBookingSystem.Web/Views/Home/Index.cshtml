@@ -31,6 +31,49 @@
     <div class="hero-divider"></div>
 </div>
 
+<!-- ---------- شريط الوصول السريع (Quick Actions) — بطاقة عائمة فوق حافة البانر ---------- -->
+<div class="quick-actions-card">
+    <a asp-controller="Hotels" asp-action="Index" class="quick-action">
+        <span class="quick-action-icon qa-1"><i class="bi bi-building-fill"></i></span>
+        <span>الفنادق</span>
+    </a>
+    <a asp-controller="Rooms" asp-action="Index" class="quick-action">
+        <span class="quick-action-icon qa-2"><i class="bi bi-door-open-fill"></i></span>
+        <span>الغرف</span>
+    </a>
+    <a asp-controller="Bookings" asp-action="Index" class="quick-action">
+        <span class="quick-action-icon qa-3"><i class="bi bi-journal-check"></i></span>
+        <span>الحجوزات</span>
+    </a>
+    <a asp-controller="Users" asp-action="Index" class="quick-action">
+        <span class="quick-action-icon qa-4"><i class="bi bi-people-fill"></i></span>
+        <span>المستخدمون</span>
+    </a>
+</div>
+
+@if (Model.Hotels.Any())
+{
+    <div class="section-heading">
+        <div>
+            <h5><span class="section-icon"><i class="bi bi-compass"></i></span> تصفّح سريع</h5>
+            <span class="section-subtitle">انتقل مباشرة إلى أي فندق من معرض الصور</span>
+        </div>
+    </div>
+    <div class="quick-browse mb-4">
+        <div class="quick-browse-scroll">
+            @foreach (var h in Model.Hotels.Take(10))
+            {
+                <a asp-controller="Hotels" asp-action="Details" asp-route-id="@h.Id" class="quick-browse-item">
+                    <span class="quick-browse-avatar">
+                        <img src="@(string.IsNullOrEmpty(h.ImageUrl) ? "https://placehold.co/100x100?text=H" : h.ImageUrl)" alt="@h.Name" loading="lazy" />
+                    </span>
+                    <span class="quick-browse-name">@h.Name</span>
+                </a>
+            }
+        </div>
+    </div>
+}
+
 <div class="row g-3 mb-4">
     <div class="col-md-3 col-sm-6">
         <div class="stat-card bg-users">
