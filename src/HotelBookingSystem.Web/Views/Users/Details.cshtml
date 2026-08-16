@@ -11,7 +11,7 @@
             <dt class="col-sm-4">الاسم الكامل</dt><dd class="col-sm-8">@Model.FullName</dd>
             <dt class="col-sm-4">البريد الإلكتروني</dt><dd class="col-sm-8">@Model.Email</dd>
             <dt class="col-sm-4">رقم الهاتف</dt><dd class="col-sm-8">@(Model.PhoneNumber ?? "-")</dd>
-            <dt class="col-sm-4">الدور</dt><dd class="col-sm-8"><span class="badge bg-secondary">@Model.Role</span></dd>
+            <dt class="col-sm-4">الدور</dt><dd class="col-sm-8"><span class="badge bg-secondary">@UserRoleDisplay.ToArabic(Model.Role)</span></dd>
             <dt class="col-sm-4">تاريخ الإنشاء</dt><dd class="col-sm-8">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)</dd>
         </dl>
     </div>

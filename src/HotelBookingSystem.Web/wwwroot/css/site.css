@@ -84,9 +84,15 @@ a { text-decoration: none; }
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    position: relative;
-    overflow: hidden;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 10px; }
 
 /* توهّجات زخرفية هادئة في خلفية الشريط الجانبي */
 .sidebar::before {

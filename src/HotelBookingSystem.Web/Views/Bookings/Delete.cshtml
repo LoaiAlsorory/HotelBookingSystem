@@ -11,7 +11,7 @@
             <dt class="col-sm-4">رقم الحجز</dt><dd class="col-sm-8">@Model.Id</dd>
             <dt class="col-sm-4">المستخدم</dt><dd class="col-sm-8">@Model.UserName</dd>
             <dt class="col-sm-4">الغرفة</dt><dd class="col-sm-8">@Model.HotelName - @Model.RoomNumber</dd>
-            <dt class="col-sm-4">الحالة</dt><dd class="col-sm-8"><span class="badge badge-status-@Model.Status.ToLower()">@Model.Status</span></dd>
+            <dt class="col-sm-4">الحالة</dt><dd class="col-sm-8"><span class="badge badge-status-@Model.Status.ToLower()">@BookingStatusDisplay.ToArabic(Model.Status)</span></dd>
         </dl>
     </div>
     <div class="card-footer d-flex gap-2">
