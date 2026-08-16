@@ -4,36 +4,62 @@
     Layout = "_LoginLayout";
 }
 
-<div class="auth-card">
-    <div class="auth-brand">
-        <i class="bi bi-building"></i>
-        <span>نظام حجز الفنادق</span>
+<div class="auth-shell">
+    <!-- ---------- اللوحة البصرية (Visual Panel) : هوية الفندق الفاخرة ---------- -->
+    <div class="auth-visual">
+        <div class="hero-pattern"></div>
+        <div class="auth-visual-glow-1"></div>
+        <div class="auth-visual-glow-2"></div>
+
+        <div class="auth-visual-content">
+            <div class="auth-visual-badge"><i class="bi bi-buildings-fill"></i></div>
+            <span class="hero-stars">★ ★ ★ ★ ★</span>
+            <h2>نظام حجز الفنادق</h2>
+            <p>لوحة تحكم فاخرة وأنيقة لإدارة فنادقك وغرفك وحجوزاتك بكل سهولة من مكان واحد</p>
+
+            <div class="auth-feature-grid">
+                <div class="auth-feature"><span class="auth-feature-icon bg-1"><i class="bi bi-shield-check"></i></span> بيانات آمنة</div>
+                <div class="auth-feature"><span class="auth-feature-icon bg-2"><i class="bi bi-lightning-charge-fill"></i></span> أداء سريع</div>
+                <div class="auth-feature"><span class="auth-feature-icon bg-3"><i class="bi bi-graph-up-arrow"></i></span> تقارير حيّة</div>
+                <div class="auth-feature"><span class="auth-feature-icon bg-4"><i class="bi bi-headset"></i></span> دعم فوري</div>
+            </div>
+        </div>
     </div>
-    <p class="auth-subtitle">سجّل دخولك للوصول إلى لوحة التحكم</p>
 
-    <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
-        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+    <!-- ---------- لوحة النموذج (Form Panel) — لم يتغيّر أي منطق هنا ---------- -->
+    <div class="auth-form-side">
+        <div class="auth-card">
+            <div class="auth-brand">
+                <i class="bi bi-building"></i>
+                <span>نظام حجز الفنادق</span>
+            </div>
+            <p class="auth-subtitle">سجّل دخولك للوصول إلى لوحة التحكم</p>
 
-        <div class="mb-3">
-            <label asp-for="Email" class="form-label">البريد الإلكتروني</label>
-            <input asp-for="Email" type="email" class="form-control" placeholder="admin@hbs.com" autofocus />
-            <span asp-validation-for="Email" class="text-danger small"></span>
+            <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">البريد الإلكتروني</label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="admin@hbs.com" autofocus />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">كلمة المرور</label>
+                    <input asp-for="Password" type="password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-box-arrow-in-left"></i> تسجيل الدخول
+                </button>
+            </form>
+
+            <div class="auth-hint">
+                <i class="bi bi-info-circle"></i>
+                بيانات تجريبية: <strong>admin@hbs.com</strong> / <strong>Admin@123</strong>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label asp-for="Password" class="form-label">كلمة المرور</label>
-            <input asp-for="Password" type="password" class="form-control" />
-            <span asp-validation-for="Password" class="text-danger small"></span>
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100">
-            <i class="bi bi-box-arrow-in-left"></i> تسجيل الدخول
-        </button>
-    </form>
-
-    <div class="auth-hint">
-        <i class="bi bi-info-circle"></i>
-        بيانات تجريبية: <strong>admin@hbs.com</strong> / <strong>Admin@123</strong>
     </div>
 </div>
 
