@@ -2,6 +2,7 @@ using HotelBookingSystem.Application.Common;
 using HotelBookingSystem.Application.DTOs.Booking;
 using HotelBookingSystem.Application.Interfaces;
 using HotelBookingSystem.Domain.Entities;
+using HotelBookingSystem.Domain.Enums;
 
 namespace HotelBookingSystem.Application.Services;
 
@@ -79,6 +80,11 @@ public class BookingService : IBookingService
         };
 
         var created = await _bookingRepo.AddAsync(booking);
+
+        // تحديث حالة الغرفة تلقائياً لتصبح محجوزة وغير متاحة للحجز
+        room.IsAvailable = false;
+        await _roomRepo.UpdateAsync(room);
+
         return Result<BookingDto>.Ok(ToDto(created));
     }
 
@@ -127,6 +133,31 @@ public class BookingService : IBookingService
 
         booking.Status = dto.Status;
         await _bookingRepo.UpdateAsync(booking);
+
+        // عند إلغاء الحجز أو إكماله تصبح الغرفة متاحة مجدداً
+        if (dto.Status == BookingStatus.Cancelled || dto.Status == BookingStatus.Completed)
+        {
+            var room = await _roomRepo.GetByIdAsync(booking.RoomId);
+            if (room is not null && !room.IsAvailable)
+            {
+                var hasOtherConflict = await _bookingRepo.HasConflictAsync(booking.RoomId, DateTime.UtcNow.Date, DateTime.UtcNow.Date.AddDays(1), id);
+                if (!hasOtherConflict)
+                {
+                    room.IsAvailable = true;
+                    await _roomRepo.UpdateAsync(room);
+                }
+            }
+        }
+        else if (dto.Status == BookingStatus.Confirmed || dto.Status == BookingStatus.Pending)
+        {
+            var room = await _roomRepo.GetByIdAsync(booking.RoomId);
+            if (room is not null && room.IsAvailable)
+            {
+                room.IsAvailable = false;
+                await _roomRepo.UpdateAsync(room);
+            }
+        }
+
         return true;
     }
 
@@ -135,7 +166,20 @@ public class BookingService : IBookingService
         var booking = await _bookingRepo.GetByIdAsync(id);
         if (booking is null) return false;
 
+        var roomId = booking.RoomId;
         await _bookingRepo.DeleteAsync(booking);
+
+        var room = await _roomRepo.GetByIdAsync(roomId);
+        if (room is not null && !room.IsAvailable)
+        {
+            var hasOtherConflict = await _bookingRepo.HasConflictAsync(roomId, DateTime.UtcNow.Date, DateTime.UtcNow.Date.AddDays(1));
+            if (!hasOtherConflict)
+            {
+                room.IsAvailable = true;
+                await _roomRepo.UpdateAsync(room);
+            }
+        }
+
         return true;
     }
 
@@ -152,6 +196,6 @@ public class BookingService : IBookingService
         GuestsCount = b.GuestsCount,
         TotalPrice = b.TotalPrice,
         Status = b.Status.ToString(),
-        CreatedAt = b.CreatedAt
+        CreatedAt = DateTime.SpecifyKind(b.CreatedAt, DateTimeKind.Utc)
     };
 }

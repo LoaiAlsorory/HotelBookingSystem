@@ -131,23 +131,37 @@ public static class DbSeeder
             // البصري مع بقاء كل رابط من نفس المجموعة "الآمنة" لتفادي أي صورة مكسورة.
             var hotelImages = new[]
             {
-                "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
-                "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800",
-                "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800",
-                "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800",
-                "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=800",
-                "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800",
-                "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800",
-                "https://images.unsplash.com/photo-1601565415267-724bbc5b3f3d?w=800",
+                "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1601565415267-724bbc5b3f3d?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1549294413-26f195200c16?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1455587734955-081b22074882?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=1000&q=80",
             };
             var roomImages = new[]
             {
-                "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=700",
-                "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=700",
-                "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=700",
-                "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=700",
-                "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=700",
-                "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=700",
+                "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1595576508898-0ad5c879a061?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1585412727339-54e4bae3bbf9?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1590073242678-70ee3fc28e8e?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1521783988139-89397d761dce?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1560448204-603b3fc33ddc?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=900&q=80",
+                "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=900&q=80",
             };
 
             var hotels = new List<Hotel>
@@ -160,10 +174,10 @@ public static class DbSeeder
                 new() { Name = "فندق النخيل الملكي",    City = "الرياض",    Address = "حي العليا، الرياض",          Description = "فندق أعمال وترفيه راقٍ في قلب العاصمة، قريب من أبرز المراكز التجارية.",                     ImageUrl = hotelImages[5], Rating = 4.6 },
                 new() { Name = "فندق لؤلؤة جدة",       City = "جدة",       Address = "كورنيش جدة",                Description = "إطلالة ساحرة على البحر الأحمر مع شاطئ خاص ومسابح لا نهائية ومطاعم عالمية.",                  ImageUrl = hotelImages[6], Rating = 4.7 },
                 new() { Name = "فندق أبراج الدوحة",     City = "الدوحة",    Address = "منطقة اللؤلؤة، الدوحة",      Description = "برج فندقي عصري بتصميم معماري مذهل وخدمات كونسيرج فاخرة على مدار الساعة.",                    ImageUrl = hotelImages[7], Rating = 4.4 },
-                new() { Name = "فندق النيل الذهبي",     City = "القاهرة",   Address = "كورنيش النيل، القاهرة",      Description = "إقامة كلاسيكية فاخرة بإطلالة مباشرة على نهر النيل وقرب من أبرز المعالم التاريخية.",           ImageUrl = hotelImages[0], Rating = 4.2 },
-                new() { Name = "منتجع مسقط الفيروزي",   City = "مسقط",      Address = "خليج العرب، مسقط",           Description = "منتجع هادئ بين الجبال والبحر، مثالي لعطلة استرخاء عائلية بمرافق سبا متكاملة.",               ImageUrl = hotelImages[1], Rating = 4.6 },
-                new() { Name = "فندق برج الكويت",       City = "الكويت",    Address = "شارع الخليج العربي، الكويت", Description = "فندق أعمال حديث في قلب العاصمة، بقاعات مؤتمرات مجهزة وصالات تنفيذية راقية.",                 ImageUrl = hotelImages[2], Rating = 4.0 },
-                new() { Name = "فندق أرز بيروت",        City = "بيروت",     Address = "وسط البلد، بيروت",           Description = "سحر المتوسط وأصالة الضيافة اللبنانية في فندق بوتيك أنيق قرب أشهر الأسواق والمطاعم.",         ImageUrl = hotelImages[3], Rating = 4.5 },
+                new() { Name = "فندق النيل الذهبي",     City = "القاهرة",   Address = "كورنيش النيل، القاهرة",      Description = "إقامة كلاسيكية فاخرة بإطلالة مباشرة على نهر النيل وقرب من أبرز المعالم التاريخية.",           ImageUrl = hotelImages[8], Rating = 4.2 },
+                new() { Name = "منتجع مسقط الفيروزي",   City = "مسقط",      Address = "خليج العرب، مسقط",           Description = "منتجع هادئ بين الجبال والبحر، مثالي لعطلة استرخاء عائلية بمرافق سبا متكاملة.",               ImageUrl = hotelImages[9], Rating = 4.6 },
+                new() { Name = "فندق برج الكويت",       City = "الكويت",    Address = "شارع الخليج العربي، الكويت", Description = "فندق أعمال حديث في قلب العاصمة، بقاعات مؤتمرات مجهزة وصالات تنفيذية راقية.",                 ImageUrl = hotelImages[10], Rating = 4.0 },
+                new() { Name = "فندق أرز بيروت",        City = "بيروت",     Address = "وسط البلد، بيروت",           Description = "سحر المتوسط وأصالة الضيافة اللبنانية في فندق بوتيك أنيق قرب أشهر الأسواق والمطاعم.",         ImageUrl = hotelImages[11], Rating = 4.5 },
             };
 
             db.Hotels.AddRange(hotels);
@@ -182,9 +196,10 @@ public static class DbSeeder
             var rnd = new Random(42); // بذرة ثابتة لضمان نفس النتائج في كل تشغيل
             var rooms = new List<Room>();
 
-            foreach (var hotel in hotels)
+            for (int hIdx = 0; hIdx < hotels.Count; hIdx++)
             {
-                // كل فندق يحصل على 4 غرف متنوعة الأنواع والأسعار والصور
+                var hotel = hotels[hIdx];
+                // كل فندق يحصل على 4 غرف متنوعة الأنواع والأسعار وتخصيص صورة غرفة فريدة
                 var picks = roomTypes.OrderBy(_ => rnd.Next()).Take(4).ToList();
                 var roomNoBase = (hotel.Id % 9 + 1) * 100;
                 for (int i = 0; i < picks.Count; i++)
@@ -199,7 +214,7 @@ public static class DbSeeder
                         PricePerNight = Math.Round(basePrice * (decimal)priceJitter / 500m) * 500m,
                         Capacity = cap,
                         IsAvailable = rnd.Next(0, 10) > 1, // معظم الغرف متاحة، القليل محجوز لواقعية أكبر
-                        ImageUrl = roomImages[rnd.Next(roomImages.Length)]
+                        ImageUrl = roomImages[(hIdx * 4 + i) % roomImages.Length]
                     });
                 }
             }

@@ -31,3 +31,8 @@ Thumbs.db
 ## Secrets (never commit real secrets)
 appsettings.*.local.json
 *.pfx
+
+## Flutter (Separated into independent repository per Dr. Al-Baltah instructions)
+src/hotel_booking_flutter/
+hotel_booking_flutter/
+

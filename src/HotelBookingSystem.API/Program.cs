@@ -114,7 +114,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Commented out to allow HTTP requests from Flutter Web (solves SSL cert/CORS issues)
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
