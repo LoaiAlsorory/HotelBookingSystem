@@ -1,0 +1,751 @@
+import os
+import docx
+from docx.shared import Inches, Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
+from docx.oxml import parse_xml, OxmlElement
+from docx.oxml.ns import nsdecls, qn
+
+FONT_ARABIC = "Traditional Arabic"
+FONT_ENGLISH = "Arial"
+FONT_CODE = "Consolas"
+
+# Colors palette (Indigo & Gold luxury academic palette)
+COLOR_PRIMARY_DARK = RGBColor(0x1E, 0x1B, 0x4B)   # كحلي غامق للعناوين الرئيسية
+COLOR_BRAND = RGBColor(0x43, 0x38, 0xCA)          # نيلي للعناوين الفرعية
+COLOR_ACCENT = RGBColor(0xC9, 0x97, 0x1F)         # ذهبي ملكي للملاحظات
+COLOR_TEXT = RGBColor(0x1F, 0x29, 0x37)           # رمادي داكن مريح للقراءة
+COLOR_MUTED = RGBColor(0x4B, 0x55, 0x63)          # رمادي نصوص مساعدة
+COLOR_GREEN = RGBColor(0x06, 0x5F, 0x46)          # أخضر للنتائج الناجحة
+
+def set_paragraph_rtl(p, align=WD_ALIGN_PARAGRAPH.RIGHT):
+    pPr = p._p.get_or_add_pPr()
+    bidi = parse_xml(f'<w:bidi {nsdecls("w")}/>')
+    pPr.append(bidi)
+    p.alignment = align
+    if align == WD_ALIGN_PARAGRAPH.RIGHT:
+        jc = parse_xml(f'<w:jc {nsdecls("w")} w:val="both"/>')
+        pPr.append(jc)
+
+def set_run_font(run, font_name=FONT_ARABIC, size_pt=14, bold=False, italic=False, color=COLOR_TEXT):
+    rPr = run._r.get_or_add_rPr()
+    rFonts = parse_xml(
+        f'<w:rFonts {nsdecls("w")} '
+        f'w:ascii="{FONT_ENGLISH}" '
+        f'w:hAnsi="{FONT_ENGLISH}" '
+        f'w:cs="{font_name}"/>'
+    )
+    rtl = parse_xml(f'<w:rtl {nsdecls("w")}/>')
+    rPr.append(rFonts)
+    rPr.append(rtl)
+    run.font.size = Pt(size_pt)
+    run.font.bold = bold
+    run.font.italic = italic
+    run.font.color.rgb = color
+
+def set_cell_background(cell, fill_hex):
+    tcPr = cell._tc.get_or_add_tcPr()
+    shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
+    tcPr.append(shd)
+
+def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
+    tcPr = cell._tc.get_or_add_tcPr()
+    tcMar = parse_xml(
+        f'<w:tcMar {nsdecls("w")}>'
+        f'<w:top w:w="{top}" w:type="dxa"/>'
+        f'<w:bottom w:w="{bottom}" w:type="dxa"/>'
+        f'<w:left w:w="{left}" w:type="dxa"/>'
+        f'<w:right w:w="{right}" w:type="dxa"/>'
+        f'</w:tcMar>'
+    )
+    tcPr.append(tcMar)
+
+def set_table_styling(table, border_color="D1D5DB", border_sz="4"):
+    tblPr = table._tbl.tblPr
+    borders = parse_xml(
+        f'<w:tblBorders {nsdecls("w")}>'
+        f'<w:top w:val="single" w:sz="{border_sz}" w:space="0" w:color="{border_color}"/>'
+        f'<w:bottom w:val="single" w:sz="{border_sz}" w:space="0" w:color="{border_color}"/>'
+        f'<w:insideH w:val="single" w:sz="{border_sz}" w:space="0" w:color="{border_color}"/>'
+        f'<w:insideV w:val="none"/>'
+        f'<w:left w:val="none"/>'
+        f'<w:right w:val="none"/>'
+        f'</w:tblBorders>'
+    )
+    tblPr.append(borders)
+    bidiVisual = parse_xml(f'<w:bidiVisual {nsdecls("w")}/>')
+    tblPr.append(bidiVisual)
+
+def add_arabic_paragraph(doc, text="", space_after=6, bold=False, size=13.5, color=COLOR_TEXT, align=WD_ALIGN_PARAGRAPH.RIGHT):
+    p = doc.add_paragraph()
+    set_paragraph_rtl(p, align)
+    p.paragraph_format.space_after = Pt(space_after)
+    p.paragraph_format.line_spacing = 1.25
+    if text:
+        r = p.add_run(text)
+        set_run_font(r, font_name=FONT_ARABIC, size_pt=size, bold=bold, color=color)
+    return p
+
+def add_arabic_heading(doc, text, level=1):
+    p = doc.add_paragraph()
+    set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+    p.paragraph_format.keep_with_next = True
+    
+    if level == 1:
+        p.paragraph_format.space_before = Pt(18)
+        p.paragraph_format.space_after = Pt(8)
+        r = p.add_run(text)
+        set_run_font(r, font_name=FONT_ARABIC, size_pt=18, bold=True, color=COLOR_PRIMARY_DARK)
+        # Add a subtle bottom border or separator line
+        pBdr = parse_xml(
+            f'<w:pBdr {nsdecls("w")}>'
+            f'<w:bottom w:val="single" w:sz="12" w:space="4" w:color="4338CA"/>'
+            f'</w:pBdr>'
+        )
+        p._p.get_or_add_pPr().append(pBdr)
+    elif level == 2:
+        p.paragraph_format.space_before = Pt(14)
+        p.paragraph_format.space_after = Pt(6)
+        r = p.add_run(text)
+        set_run_font(r, font_name=FONT_ARABIC, size_pt=15.5, bold=True, color=COLOR_BRAND)
+    else:
+        p.paragraph_format.space_before = Pt(10)
+        p.paragraph_format.space_after = Pt(4)
+        r = p.add_run(text)
+        set_run_font(r, font_name=FONT_ARABIC, size_pt=14, bold=True, color=COLOR_PRIMARY_DARK)
+    return p
+
+def add_card_box(doc, title, content_list, border_color="4338CA", bg_color="F5F3FF"):
+    """Creates a clean Word table card to avoid any text overlapping or ASCII bugs."""
+    tbl = doc.add_table(rows=1, cols=1)
+    tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    tblPr = tbl._tbl.tblPr
+    
+    # Custom right border (RTL card highlight)
+    borders = parse_xml(
+        f'<w:tblBorders {nsdecls("w")}>'
+        f'<w:top w:val="none"/>'
+        f'<w:bottom w:val="none"/>'
+        f'<w:left w:val="none"/>'
+        f'<w:right w:val="single" w:sz="24" w:space="0" w:color="{border_color}"/>'
+        f'<w:insideH w:val="none"/>'
+        f'<w:insideV w:val="none"/>'
+        f'</w:tblBorders>'
+    )
+    tblPr.append(borders)
+    tblPr.append(parse_xml(f'<w:bidiVisual {nsdecls("w")}/>'))
+    
+    cell = tbl.rows[0].cells[0]
+    cell.width = Inches(6.5)
+    set_cell_background(cell, bg_color)
+    set_cell_margins(cell, 120, 120, 180, 180)
+    
+    p0 = cell.paragraphs[0]
+    set_paragraph_rtl(p0, WD_ALIGN_PARAGRAPH.RIGHT)
+    p0.paragraph_format.space_after = Pt(4)
+    r_t = p0.add_run(title)
+    set_run_font(r_t, font_name=FONT_ARABIC, size_pt=14.5, bold=True, color=COLOR_PRIMARY_DARK)
+    
+    for item in content_list:
+        p = cell.add_paragraph()
+        set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+        p.paragraph_format.space_after = Pt(3)
+        p.paragraph_format.line_spacing = 1.2
+        r = p.add_run(item)
+        set_run_font(r, font_name=FONT_ARABIC, size_pt=13, bold=False, color=COLOR_TEXT)
+        
+    doc.add_paragraph().paragraph_format.space_after = Pt(4)
+
+def add_code_block(doc, code_text):
+    tbl = doc.add_table(rows=1, cols=1)
+    tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    tblPr = tbl._tbl.tblPr
+    borders = parse_xml(
+        f'<w:tblBorders {nsdecls("w")}>'
+        f'<w:top w:val="single" w:sz="4" w:space="0" w:color="E5E7EB"/>'
+        f'<w:bottom w:val="single" w:sz="4" w:space="0" w:color="E5E7EB"/>'
+        f'<w:left w:val="single" w:sz="12" w:space="0" w:color="1E1B4B"/>'
+        f'<w:right w:val="single" w:sz="4" w:space="0" w:color="E5E7EB"/>'
+        f'</w:tblBorders>'
+    )
+    tblPr.append(borders)
+    cell = tbl.rows[0].cells[0]
+    cell.width = Inches(6.5)
+    set_cell_background(cell, "F8FAFC")
+    set_cell_margins(cell, 100, 100, 140, 140)
+    
+    p = cell.paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT # Code is LTR
+    pPr = p._p.get_or_add_pPr()
+    r = p.add_run(code_text)
+    r.font.name = FONT_CODE
+    r.font.size = Pt(9.5)
+    r.font.color.rgb = RGBColor(0x0F, 0x17, 0x2A)
+    doc.add_paragraph().paragraph_format.space_after = Pt(4)
+
+def build_professional_arabic_doc():
+    doc = docx.Document()
+    
+    # Page setup
+    for section in doc.sections:
+        section.top_margin = Inches(1.0)
+        section.bottom_margin = Inches(1.0)
+        section.left_margin = Inches(1.0)
+        section.right_margin = Inches(1.0)
+        section.page_width = Inches(8.5)
+        section.page_height = Inches(11.0)
+        
+        # Section-level RTL
+        sectPr = section._sectPr
+        bidi = parse_xml(f'<w:bidi {nsdecls("w")}/>')
+        sectPr.append(bidi)
+
+    # -------------------------------------------------------------
+    # 1. صفحة الغلاف الرسمية المعتمدة (Cover Page)
+    # -------------------------------------------------------------
+    p_inst = doc.add_paragraph()
+    set_paragraph_rtl(p_inst, WD_ALIGN_PARAGRAPH.CENTER)
+    p_inst.paragraph_format.space_after = Pt(24)
+    
+    r_inst = p_inst.add_run(
+        "الجمهورية اليمنية\n"
+        "وزارة التعليم العالي والبحث العلمي\n"
+        "جامعة الحكمة — صنعاء\n"
+        "كلية الهندسة وتكنولوجيا المعلومات\n"
+        "قسم تكنولوجيا المعلومات (IT)\n"
+    )
+    set_run_font(r_inst, font_name=FONT_ARABIC, size_pt=14, bold=True, color=RGBColor(0x37, 0x41, 0x51))
+
+    # فاصل زخرفي رسمي
+    p_rule = doc.add_paragraph()
+    p_rule.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r_rule = p_rule.add_run("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    set_run_font(r_rule, font_name=FONT_ENGLISH, size_pt=11, bold=True, color=COLOR_BRAND)
+    p_rule.paragraph_format.space_after = Pt(20)
+
+    p_title = doc.add_paragraph()
+    set_paragraph_rtl(p_title, WD_ALIGN_PARAGRAPH.CENTER)
+    p_title.paragraph_format.space_after = Pt(14)
+    r_t1 = p_title.add_run("التقرير الفني النهائي لتوثيق المشروع البرمجي الشامل\n")
+    set_run_font(r_t1, font_name=FONT_ARABIC, size_pt=24, bold=True, color=COLOR_PRIMARY_DARK)
+
+    r_t2 = p_title.add_run("نظام حجز وإدارة الفنادق المتكامل (Enterprise Hotel Booking System)\n")
+    set_run_font(r_t2, font_name=FONT_ARABIC, size_pt=17, bold=True, color=COLOR_BRAND)
+
+    r_t3 = p_title.add_run("توثيق مخرجات الأسبوع العاشر (W10 Documentation) والتوليف التراكمي للـ SDLC\n")
+    set_run_font(r_t3, font_name=FONT_ARABIC, size_pt=13, bold=False, color=COLOR_MUTED)
+
+    r_t4 = p_title.add_run("مساق التدريب الميداني — العام الجامعي 2026 - 2027م")
+    set_run_font(r_t4, font_name=FONT_ARABIC, size_pt=13, bold=True, color=COLOR_PRIMARY_DARK)
+
+    p_rule2 = doc.add_paragraph()
+    p_rule2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r_rule2 = p_rule2.add_run("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    set_run_font(r_rule2, font_name=FONT_ENGLISH, size_pt=11, bold=True, color=COLOR_BRAND)
+    p_rule2.paragraph_format.space_after = Pt(24)
+
+    # جدول بيانات الغلاف الأكاديمي
+    meta_table = doc.add_table(rows=8, cols=2)
+    meta_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    set_table_styling(meta_table, border_color="E5E7EB", border_sz="6")
+
+    meta_items = [
+        ("عنوان المشروع البرمجي", "نظام إدارة وحجز الفنادق الموزع متعدد الطبقات (Hotel Booking System)"),
+        ("المساق الأكاديمي والرمز", "دليل التدريب الميداني لمشاريع تطوير البرمجيات الفردية (IT-492)"),
+        ("المشرف الأكاديمي على المساق", "أ.د / إبراهيم أحمد البلطة (أستاذ هندسة البرمجيات المشارك)"),
+        ("إعداد مهندس البرمجيات / الطالب", "لؤي السروري (Loai Alsorory)"),
+        ("المعمارية البرمجية المعتمدة", "Clean Architecture + Repository Pattern + Provider (Flutter)"),
+        ("مستودع الباك إند والويب (GitHub)", "https://github.com/LoaiAlsorory/HotelBookingSystem"),
+        ("مستودع تطبيق الموبايل (Flutter)", "https://github.com/LoaiAlsorory/HotelBookingSystem-Flutter"),
+        ("تاريخ التسليم والإصدار", "الإصدار النهائي الشامل 1.0.0 — سبتمبر 2026م")
+    ]
+
+    for idx, (label, val) in enumerate(meta_items):
+        row = meta_table.rows[idx]
+        cell_lbl, cell_val = row.cells[0], row.cells[1]
+        cell_lbl.width = Inches(2.6)
+        cell_val.width = Inches(3.9)
+
+        set_cell_background(cell_lbl, "F3F4F6")
+        set_cell_margins(cell_lbl, 90, 90, 130, 130)
+        set_cell_margins(cell_val, 90, 90, 130, 130)
+
+        p0 = cell_lbl.paragraphs[0]
+        set_paragraph_rtl(p0, WD_ALIGN_PARAGRAPH.RIGHT)
+        r0 = p0.add_run(label)
+        set_run_font(r0, font_name=FONT_ARABIC, size_pt=12.5, bold=True, color=COLOR_PRIMARY_DARK)
+
+        p1 = cell_val.paragraphs[0]
+        set_paragraph_rtl(p1, WD_ALIGN_PARAGRAPH.RIGHT)
+        r1 = p1.add_run(val)
+        set_run_font(r1, font_name=FONT_ARABIC, size_pt=12, bold=False, color=COLOR_TEXT)
+
+    doc.add_page_break()
+
+    # -------------------------------------------------------------
+    # 2. المقدمة والملخص التنفيذي والمعمارية
+    # -------------------------------------------------------------
+    add_arabic_heading(doc, "1. المقدمة والملخص التنفيذي والمعمارية البرمجية للمشروع", level=1)
+    
+    add_arabic_paragraph(
+        doc,
+        "يُعد هذا التقرير التوثيقي المرجع الفني والأكاديمي الشامل لتسليم متطلبات مساق التدريب الميداني بجامعة الحكمة، "
+        "المُقام تحت إشراف أ.د/ إبراهيم أحمد البلطة. تم تصميم وتنفيذ المشروع بمحاكاة دقيقة لبيئات شركات البرمجيات العالمية، "
+        "حيث تولى الطالب دور مهندس برمجيات متكامل (Full-Stack Software Engineer) لتنفيذ كافة مراحل دورة حياة تطوير النظم (SDLC) "
+        "بشكل فردي وصارم، انطلاقاً من التحليل والنمذجة والتصميم المعماري، ومروراً بتطوير قواعد البيانات والواجهات البرمجية والتطبيقات، "
+        "وصولاً إلى الفحص وضمان الجودة والتوثيق المتكامل."
+    )
+    
+    add_arabic_paragraph(
+        doc,
+        "يقدم النظام حلاً هندسياً شاملاً وموزعاً لإدارة قطاع الضيافة وحجوزات الفنادق، مبنياً وفق أحدث المعايير البرمجية "
+        "ويتوزع على مشروعين ومستودعين منفصلين تماماً تنفيذاً لقرار العزل المعماري الصادر عن المشرف الأكاديمي:"
+    )
+
+    add_card_box(
+        doc,
+        "المشروع الأول: الباك إند وبوابة الويب الإدارية (HotelBookingSystem)",
+        [
+            "• إطار العمل والتقنيات: مبني بتقنية ASP.NET Core 10 وقاعدة بيانات SQL Server عبر Entity Framework Core 10.",
+            "• النمط المعماري: معمارية البصلة / النظيفة (Clean Architecture) مع نمط المستودع (Repository Pattern) لضمان استقلالية طبقات العمل.",
+            "• المكونات: يضم واجهات برمجة التطبيقات (RESTful Web APIs) وبوابة إدارة متكاملة بنظام ASP.NET Core MVC (Razor Views) مدعومة بـ Bootstrap 5 RTL وخط Cairo و DataTables.js."
+        ],
+        border_color="4338CA",
+        bg_color="EEF2FF"
+    )
+
+    add_card_box(
+        doc,
+        "المشروع الثاني: تطبيق الهاتف المحمول المستقل (HotelBookingSystem-Flutter)",
+        [
+            "• إطار العمل والتقنيات: مبني بتقنية Google Flutter مع لغة Dart 3.x ونمط إدارة الحالة المتقدم (Provider Pattern).",
+            "• الفصل المعماري: تم فصله في مشروع ومستودع مستقل كلياً على GitHub كعميل مستقل (Standalone Micro-Client) استجابة لتوجيه د/ إبراهيم البلطة.",
+            "• التكامل: يتصل بالباك إند حصرياً عبر بروتوكول HTTP/JSON، مع دعم واجهات عربية أصيلة (RTL)، وقائمة جانبية Drawer، وشريط تنقل سفلي BottomNav، ونافذة حجز منبثقة SheetModal."
+        ],
+        border_color="7C3AED",
+        bg_color="FAF5FF"
+    )
+
+    add_arabic_heading(doc, "جدول تفصيل الطبقات المعمارية للمشروع (Clean Architecture Layers):", level=2)
+
+    table_arch = doc.add_table(rows=6, cols=3)
+    table_arch.alignment = WD_TABLE_ALIGNMENT.CENTER
+    set_table_styling(table_arch, border_color="E5E7EB", border_sz="4")
+
+    headers_arch = ["الطبقة البرمجية (Layer)", "المسؤولية والوظيفة في النظام", "التقنيات والمكتبات المستخدمة"]
+    for i, h in enumerate(headers_arch):
+        cell = table_arch.rows[0].cells[i]
+        set_cell_background(cell, "1E1B4B")
+        p = cell.paragraphs[0]
+        set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+        r = p.add_run(h)
+        set_run_font(r, font_name=FONT_ARABIC, size_pt=13, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF))
+
+    arch_data = [
+        ("HotelBookingSystem.Domain", "تحتوي الكيانات الأساسية (Hotels, Rooms, Bookings, Users)، أنواع البيانات، وقواعد العمل المجردة بدون أي اعتمادية على مكتبات خارجية.", "C# 13, Plain Old CLR Objects (POCOs)"),
+        ("HotelBookingSystem.Application", "تحتوي كائنات نقل البيانات (DTOs)، واجهات المستودعات (IRepositories)، خدمات الأعمال، وضوابط التحقق Validation.", "FluentValidation, DataAnnotations"),
+        ("HotelBookingSystem.Infrastructure", "تحتوي سياق قاعدة البيانات (ApplicationDbContext)، وتطبيق المستودعات عبر EF Core، وإدارة الترحيلات ومحرك زرع البيانات DbSeeder.", "Entity Framework Core 10, SQL Server"),
+        ("HotelBookingSystem.API", "المحطة الطرفية لتوفير الـ Endpoints للعملاء الخارجيين، وتوثيق Swagger، وتأمين المصادقة عبر JWT Bearer Tokens.", "ASP.NET Core 10 Web API, Swagger/OpenAPI"),
+        ("HotelBookingSystem.Web", "بوابة الإدارة المركزية بنمط MVC، تضم شاشات التحكم، وعرض الإحصائيات، ونماذج التعديل والحذف مع نوافذ Bootstrap Modals.", "ASP.NET Core MVC, Razor, Bootstrap 5 RTL, DataTable.js")
+    ]
+
+    for row_idx, data in enumerate(arch_data, start=1):
+        row = table_arch.rows[row_idx]
+        bg = "F9FAFB" if row_idx % 2 == 1 else "FFFFFF"
+        for col_idx, text in enumerate(data):
+            cell = row.cells[col_idx]
+            set_cell_background(cell, bg)
+            set_cell_margins(cell, 80, 80, 110, 110)
+            p = cell.paragraphs[0]
+            set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+            r = p.add_run(text)
+            set_run_font(r, font_name=FONT_ARABIC, size_pt=12, bold=(col_idx == 0), color=COLOR_TEXT)
+
+    doc.add_page_break()
+
+    # -------------------------------------------------------------
+    # 3. الجزء الأول: دليل التثبيت والتجهيز البيئي (W10.1)
+    # -------------------------------------------------------------
+    add_arabic_heading(doc, "2. الجزء الأول: دليل التثبيت والتجهيز البيئي والتشغيل (W10.1 Installation Guide)", level=1)
+
+    add_arabic_paragraph(
+        doc,
+        "يحدد هذا القسم المتطلبات الهندسية والخطوات الإجرائية الدقيقة لتجهيز بيئة العمل، وإعداد قواعد البيانات، "
+        "وترجمة وتشغيل كافة مكونات النظام بنجاح من المصدر (Source Code)."
+    )
+
+    add_arabic_heading(doc, "1.2 المتطلبات المسبقة للبيئة والعتاد (Prerequisites):", level=2)
+
+    table_req = doc.add_table(rows=6, cols=3)
+    table_req.alignment = WD_TABLE_ALIGNMENT.CENTER
+    set_table_styling(table_req, border_color="E5E7EB", border_sz="4")
+
+    headers_req = ["المكون البرمجي / التقنية", "الحد الأدنى المطلوب للتشغيل", "الغرض والدور في النظام"]
+    for i, h in enumerate(headers_req):
+        cell = table_req.rows[0].cells[i]
+        set_cell_background(cell, "1E1B4B")
+        p = cell.paragraphs[0]
+        set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+        r = p.add_run(h)
+        set_run_font(r, font_name=FONT_ARABIC, size_pt=13, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF))
+
+    req_data = [
+        (".NET SDK", "الإصدار .NET 10.0 SDK (x64)", "بيئة بناء وتشغيل مشروع الباك إند API وبوابة الويب MVC"),
+        ("محرك قاعدة البيانات", "SQL Server LocalDB أو SQL Server 2022", "مستودع حفظ البيانات العلائقية للفنادق والغرف والحجوزات والمستخدمين"),
+        ("حزمة أدوات الموبايل", "Flutter SDK 3.19 فما فوق مع Dart 3", "بناء وتشغيل تطبيق الهاتف المحمول عبر المتصفح أو أجهزة أندرويد"),
+        ("متصفح الويب الحديث", "Google Chrome 120 فما فوق", "استعراض بوابة الويب وتوثيق Swagger واختبار تطبيق Flutter Web"),
+        ("نظام إدارة الإصدارات", "Git CLI 2.40 فما فوق", "مزامنة التحديثات، إدارة الفروع، ورفع المشاريع لمستودعات GitHub")
+    ]
+
+    for row_idx, data in enumerate(req_data, start=1):
+        row = table_req.rows[row_idx]
+        bg = "F9FAFB" if row_idx % 2 == 1 else "FFFFFF"
+        for col_idx, text in enumerate(data):
+            cell = row.cells[col_idx]
+            set_cell_background(cell, bg)
+            set_cell_margins(cell, 80, 80, 110, 110)
+            p = cell.paragraphs[0]
+            set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+            r = p.add_run(text)
+            set_run_font(r, font_name=FONT_ARABIC, size_pt=12, bold=(col_idx == 0), color=COLOR_TEXT)
+
+    add_arabic_heading(doc, "2.2 إعداد قاعدة البيانات والزرع التلقائي للبيانات (Automated Seeding Engine):", level=2)
+    add_arabic_paragraph(
+        doc,
+        "تم تضمين منطق تهيئة ذاتي ومتقدم لقاعدة البيانات داخل ملف Program.cs؛ حيث يتبع النظام استراتيجية "
+        "الإنشاء الذاتي (Self-Bootstrapping Database) التي تُغني المشرف أو المقيّم عن كتابة أي أوامر SQL يدوية:\n"
+        "1. التحقق التلقائي: عند تشغيل مشروع الـ Web أو الـ API، يستدعي النظام Database.EnsureCreated() الذي يتحقق من وجود قاعدة بيانات HotelBookingDb، وفي حال عدم وجودها يتم إنشاؤها فوراً وبناء الجداول الأربعة والعلاقات والمفاتيح الأجنبية وفهارس البحث.\n"
+        "2. محرك الزرع الذكي (DbSeeder.SeedAsync): يتحقق النظام هل الجداول فارغة، فإذا كانت فارغة يقوم بملئها فورياً ببيانات واقعية وفخمة تشمل:\n"
+        "   - 12 فندقاً فريداً: موزعة على كبرى العواصم والمدن العربية (الرياض، جدة، دبي، الدوحة، مسقط، الكويت، القاهرة، بيروت، وغيرها)، ولكل فندق صورة فوتوغرافية معمارية فريدة وعالية الجودة.\n"
+        "   - 48 غرفة فندقية مستقلة: بمعدل 4 غرف لكل فندق تتنوع بين (مفردة، مزدوجة، أجنحة عائلية، وديلوكس فاخر)، بأسعار مدروسة وسعات استيعابية من 1 إلى 10 ضيوف، وتم تخصيص صورة غرفة فريدة ومستقلة لكل غرفة تختلف تماماً عن صور الفنادق.\n"
+        "   - بيانات الاعتماد المشفرة: إنشاء حساب مدير النظام (admin@hotel.com) وحسابات عملاء تجريبية بكلمات مرور محمية بخوارزمية التشفير PBKDF2 والـ Salt العشوائي."
+    )
+
+    add_arabic_heading(doc, "3.2 خطوات وأوامر تشغيل المنظومة خطوة بخطوة (Execution Guide):", level=2)
+
+    add_arabic_paragraph(doc, "أولاً: استنساخ وبناء مشروع الباك إند والويب (ASP.NET Core Solution):", bold=True, size=13.5, color=COLOR_BRAND)
+    add_code_block(
+        doc,
+        "git clone https://github.com/LoaiAlsorory/HotelBookingSystem.git\n"
+        "cd HotelBookingSystem\n"
+        "dotnet restore HotelBookingSystem.sln\n"
+        "dotnet build HotelBookingSystem.sln --configuration Release --nologo"
+    )
+
+    add_arabic_paragraph(doc, "ثانياً: تشغيل خدمة واجهات البرمجة (RESTful Web API):", bold=True, size=13.5, color=COLOR_BRAND)
+    add_code_block(
+        doc,
+        "cd src/HotelBookingSystem.API\n"
+        "dotnet run\n"
+        "# السيرفر يعمل على: http://localhost:5242\n"
+        "# واجهة توثيق Swagger التفاعلية: http://localhost:5242/swagger"
+    )
+
+    add_arabic_paragraph(doc, "ثالثاً: تشغيل بوابة الويب الإدارية (ASP.NET Core MVC):", bold=True, size=13.5, color=COLOR_BRAND)
+    add_code_block(
+        doc,
+        "cd src/HotelBookingSystem.Web\n"
+        "dotnet run\n"
+        "# رابط البوابة الإدارية: http://localhost:5200\n"
+        "# حساب تسجيل دخول المدير: admin@hotel.com  |  كلمة المرور: Password123!"
+    )
+
+    add_arabic_paragraph(doc, "رابعاً: تشغيل تطبيق الهاتف المحمول المستقل (Flutter Mobile Client):", bold=True, size=13.5, color=COLOR_BRAND)
+    add_code_block(
+        doc,
+        "cd E:/Project_ASP.NET/HOTEL_BOOKIN_SYSTEM/Hotel_Booking_Flutter\n"
+        "flutter pub get\n"
+        "# للتشغيل المباشر والسريع عبر متصفح كروم:\n"
+        "flutter run -d chrome\n"
+        "# أو للتشغيل على هاتف أندرويد متصل عبر USB:\n"
+        "flutter run"
+    )
+
+    doc.add_page_break()
+
+    # -------------------------------------------------------------
+    # 4. الجزء الثاني: دليل المستخدم المصور (W10.2 User Manual)
+    # -------------------------------------------------------------
+    add_arabic_heading(doc, "3. الجزء الثاني: دليل المستخدم الشامل وواجهات النظام (W10.2 User Manual)", level=1)
+
+    add_arabic_paragraph(
+        doc,
+        "صُمم النظام لخدمة شريحتين أساسيتين من المستخدمين عبر واجهتين هندسيتين متطورتين؛ بوابة الإدارة المكتبية (Web Portal) "
+        "التي تلبي احتياجات مسؤولي النظام ومدراء الفنادق، وتطبيق الهاتف المحمول (Flutter App) المصمم لتوفير تجربة حجز عصرية وسريعة للنزلاء."
+    )
+
+    add_arabic_heading(doc, "1.3 دليل استخدام بوابة الويب الإدارية (ASP.NET Core MVC Portal):", level=2)
+
+    web_manual_steps = [
+        ("واجهة تسجيل الدخول المنقسمة (Split-Screen Login)", "تعتمد تصميماً عصرياً؛ يبرز الجانب الأيمن واجهة ترحيبية بصور الفنادق الفاخرة، بينما يقدم الجانب الأيسر نموذج تسجيل دخول ذكي مع التحقق الفوري من صحة البريد الإلكتروني وكلمة المرور وإصدار كوكيز مصادقة آمنة ومشفرة."),
+        ("لوحة التحكم المركزية (Main Dashboard)", "تستعرض 4 مؤشرات أداء رئيسية (KPIs) بحسابات رقمية حية: إجمالي الفنادق المسجلة، عدد الغرف الشاغرة، إجمالي الحجوزات النشطة، وصافي الإيرادات المحصلة. كما تحتوي على جدول الحجوزات الأخيرة وأزرار وصول سريع لإضافة فندق أو غرفة فوراً."),
+        ("إدارة الفنادق (Hotels Management)", "استعراض بيانات الفنادق بجدول تفاعلي مدعوم بـ DataTable.js يتيح البحث اللحظي بالاسم والمدينة وتصدير البيانات. تتيح شاشة الإنشاء إضافة الفندق بصورته وتقييمه، وشاشة التفاصيل تستعرض بطاقة الفندق وقائمة غرفه، وشاشة الحذف مؤمنة بنافذة تأكيد منبثقة (Bootstrap Modal)."),
+        ("إدارة الغرف وحالة التوفر (Rooms Inventory)", "تمكين المشرف من إضافة وتعديل الغرف وربطها بالفندق، مع تحديد نوع الغرفة (مفردة، مزدوجة، جناح، ديلوكس)، وتحديد طاقتها الاستيعابية، وسعر الليلة، وتعديل حالة الغرفة بين (متاحة / محجوزة) بضغطة زر."),
+        ("إدارة الحجوزات والعمليات المالية (Bookings Workflow)", "إمكانية إنشاء حجز فندقي جديد مع احتساب السعر الإجمالي تلقائياً بضرب عدد الليالي في سعر الغرفة، مع تفعيل محرك منع التضارب الزمني، وإمكانية تعديل حالة الحجز بين (مؤكد Confirmed، معلق Pending، وملغي Cancelled)."),
+        ("دليل المستخدمين والصلاحيات (Users Management)", "شاشة مخصصة لإدارة حسابات النظام واستعراض قائمة العملاء والمدراء وتواريخ تسجيلهم.")
+    ]
+
+    for title, desc in web_manual_steps:
+        add_card_box(doc, title, [desc], border_color="4338CA", bg_color="F8FAFC")
+
+    add_arabic_heading(doc, "2.3 دليل استخدام تطبيق الهاتف المحمول (Flutter Mobile Application):", level=2)
+
+    mobile_manual_steps = [
+        ("شاشة البداية والدخول (Splash & Login)", "شاشة افتتاحية متحركة تتحقق من الـ Token المخزن، تليها شاشة تسجيل دخول ذكية تدعم إخفاء وإظهار كلمة المرور والتحقق التلقائي من صحة المدخلات."),
+        ("لوحة القيادة التفاعلية (HomeScreen Dashboard)", "تستعرض بطاقات إحصائية للمستخدم، شريط ترحيب باسم العميل، شريط أفقي فخم لأبرز الفنادق الموصى بها بصورها المحملة بسلاسة، وأزرار التنقل السريع."),
+        ("القائمة الجانبية المنسحبة (RTL Drawer)", "قائمة سحب ناعمة تنزلق من اليمين (RTL) تضم ترويسة أنيقة باسم المستخدم وبريده وصلاحيته، وروابط الانتقال لجميع أقسام التطبيق، مع زر تسجيل الخروج الآمن."),
+        ("شريط التنقل السفلي الثابت (Bottom Navigation Bar)", "شريط سفلي بـ 5 تبويبات أساسية (لوحة التحكم، المستخدمون، الفنادق، الغرف، الحجوزات) مع أيقونات ملونة وخط Cairo الأصيل."),
+        ("كتالوج الفنادق والشاشة التفصيلية (Hotels & Details)", "شاشة استعراض الفنادق مع شريط بحث بالاسم والمدينة، وشاشة تفاصيل الفندق الفاخرة التي تستعرض المرافق وقائمة الغرف المتاحة التابعة له."),
+        ("النافذة المنبثقة لحجز الغرفة (SheetModal)", "عند الضغط على زر 'حجز الآن' بأي غرفة، تنبثق نافذة سفلية تفاعلية تمكن النزيل من اختيار تاريخي الوصول والمغادرة وعدد الضيوف ومراجعة السعر الإجمالي وتأكيد الحجز مع ظهور إشعار نجاح عائم (SnackBar).")
+    ]
+
+    for title, desc in mobile_manual_steps:
+        add_card_box(doc, title, [desc], border_color="7C3AED", bg_color="FAF5FF")
+
+    doc.add_page_break()
+
+    # -------------------------------------------------------------
+    # 5. الجزء الثالث: تقرير الفحص وضمان الجودة (W10.3 Testing)
+    # -------------------------------------------------------------
+    add_arabic_heading(doc, "4. الجزء الثالث: تقرير الفحص وضمان الجودة والاختبارات (W10.3 Testing & QA)", level=1)
+
+    add_arabic_paragraph(
+        doc,
+        "خضعت المنظومة البرمجية لمصفوفة اختبارات صارمة ومتعددة المستويات شملت اختبارات واجهات البرمجة (API Testing)، "
+        "واختبارات التحقق من سلامة المدخلات (Input Validation)، واختبارات منطق الأعمال وحماية العمليات المتزامنة (Concurrency & Business Rules)."
+    )
+
+    add_arabic_heading(doc, "1.4 نتائج اختبارات واجهات الـ RESTful Web API عبر Postman و Swagger:", level=2)
+
+    table_tests = doc.add_table(rows=11, cols=5)
+    table_tests.alignment = WD_TABLE_ALIGNMENT.CENTER
+    set_table_styling(table_tests, border_color="E5E7EB", border_sz="4")
+
+    cols_test = ["نقطة النهاية (Endpoint)", "نوع الطلب", "سيناريو الاختبار والفحص", "رمز الاستجابة المتوقع", "النتيجة الفعلية"]
+    for i, c in enumerate(cols_test):
+        cell = table_tests.rows[0].cells[i]
+        set_cell_background(cell, "1E1B4B")
+        p = cell.paragraphs[0]
+        set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+        r = p.add_run(c)
+        set_run_font(r, font_name=FONT_ARABIC, size_pt=12.5, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF))
+
+    tests_data = [
+        ("/api/auth/login", "POST", "تسجيل دخول صحيح لمدير النظام", "200 OK", "ناجح (استلام JWT Token)"),
+        ("/api/auth/login", "POST", "محاولة دخول بكلمة مرور خاطئة", "401 Unauthorized", "ناجح (رفض وتنبيه بالخطأ)"),
+        ("/api/hotels", "GET", "استرجاع قائمة الفنادق كاملة", "200 OK", "ناجح (استرجاع 12 فندقاً)"),
+        ("/api/hotels/{id}", "GET", "استرجاع فندق برقم المعرف 1", "200 OK", "ناجح (استرجاع بيانات الفندق)"),
+        ("/api/hotels/99999", "GET", "طلب فندق برقم غير موجود في النظام", "404 Not Found", "ناجح (إرجاع رسالة غير موجود)"),
+        ("/api/hotels", "POST", "إضافة فندق جديد بكافة البيانات الصحيحة", "201 Created", "ناجح (حفظ الفندق بالـ DB)"),
+        ("/api/hotels", "POST", "إضافة فندق بدون اسم (حقل إجباري فارغ)", "400 Bad Request", "ناجح (رفض مع رسالة التحقق)"),
+        ("/api/rooms", "GET", "تصفية الغرف التابعة لفندق محدد (?hotelId=1)", "200 OK", "ناجح (استرجاع غرف الفندق)"),
+        ("/api/bookings", "POST", "إنشاء حجز فندقي بتاريخ مستقبلي صحيح", "201 Created", "ناجح (إنشاء الحجز وحفظه)"),
+        ("/api/bookings", "POST", "محاولة حجز مزدوج لغرفة محجوزة بنفس الفترة", "409 Conflict", "ناجح (منع الحجز المزدوج)")
+    ]
+
+    for row_idx, data in enumerate(tests_data, start=1):
+        row = table_tests.rows[row_idx]
+        bg = "F9FAFB" if row_idx % 2 == 1 else "FFFFFF"
+        for col_idx, val in enumerate(data):
+            cell = row.cells[col_idx]
+            set_cell_background(cell, bg)
+            set_cell_margins(cell, 70, 70, 90, 90)
+            p = cell.paragraphs[0]
+            set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+            r = p.add_run(val)
+            is_result = (col_idx == 4)
+            set_run_font(r, font_name=FONT_ARABIC, size_pt=11.5, bold=is_result, color=COLOR_GREEN if is_result else COLOR_TEXT)
+
+    add_arabic_heading(doc, "2.4 مصفوفة اختبارات التحقق من صحة المدخلات (Input Validation Testing):", level=2)
+
+    table_val = doc.add_table(rows=6, cols=4)
+    table_val.alignment = WD_TABLE_ALIGNMENT.CENTER
+    set_table_styling(table_val, border_color="E5E7EB", border_sz="4")
+
+    cols_val = ["الكيان / الحقل البرمجي", "قاعدة التحقق المفروضة", "حالة الفحص السلبي (Negative Test)", "استجابة النظام وتصرفه"]
+    for i, c in enumerate(cols_val):
+        cell = table_val.rows[0].cells[i]
+        set_cell_background(cell, "374151")
+        p = cell.paragraphs[0]
+        set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+        r = p.add_run(c)
+        set_run_font(r, font_name=FONT_ARABIC, size_pt=12.5, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF))
+
+    val_data = [
+        ("User.Email", "Required, EmailAddress", "إدخال نص بريد بدون علامة @ أو نطاق", "رفض فوري: يرجى إدخال بريد إلكتروني صالح"),
+        ("Hotel.Rating", "Range (1.0 إلى 5.0)", "إدخال تقييم بقيمة 7.5 أو قيمة سالبة", "رفض فوري: التقييم يجب أن يكون بين 1 و 5"),
+        ("Room.PricePerNight", "Range (1 إلى 1,000,000)", "إدخال سعر ليلة بقيمة صفر أو سالبة (-100)", "رفض فوري: يجب أن يكون السعر رقماً موجباً أكبر من الصفر"),
+        ("Room.Capacity", "Range (1 إلى 20 ضيفاً)", "إدخال سعة استيعابية بقيمة صفر", "رفض فوري: سعة الغرفة يجب أن تتسع لشخص واحد على الأقل"),
+        ("Booking.Dates", "قاعدة مخصصة IValidatableObject", "تحديد تاريخ المغادرة مساوياً أو قبل الوصول", "رفض فوري: تاريخ المغادرة يجب أن يكون بعد تاريخ الوصول")
+    ]
+
+    for row_idx, data in enumerate(val_data, start=1):
+        row = table_val.rows[row_idx]
+        bg = "F9FAFB" if row_idx % 2 == 1 else "FFFFFF"
+        for col_idx, val in enumerate(data):
+            cell = row.cells[col_idx]
+            set_cell_background(cell, bg)
+            set_cell_margins(cell, 70, 70, 90, 90)
+            p = cell.paragraphs[0]
+            set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+            r = p.add_run(val)
+            set_run_font(r, font_name=FONT_ARABIC, size_pt=11.5, bold=(col_idx == 0), color=COLOR_TEXT)
+
+    add_arabic_heading(doc, "3.4 اختبار منطق الأعمال وحماية العمليات المتزامنة (منع الحجز المزدوج):", level=2)
+    add_arabic_paragraph(
+        doc,
+        "تُعد حماية النظام من الحجوزات المتضاربة (Double Bookings) أهم قاعدة عمل في قطاع الفنادق. "
+        "تم فحص هذه القاعدة هندسياً في طبقة الـ Service والـ Repository، حيث يمنع النظام تداخل الفترات الزمنية عبر الاستعلام التالي:\n"
+        "• تم تسجيل حجز مسبق للغرفة رقم 101 من تاريخ 10 أكتوبر إلى 15 أكتوبر وتم تأكيده.\n"
+        "• تمت محاولة إرسال حجز آخر لنفس الغرفة 101 من تاريخ 12 أكتوبر إلى 18 أكتوبر (فترة متداخلة).\n"
+        "• النتيجة الفعلية: رفض النظام الطلب فورياً برمز 409 Conflict مع رسالة خطأ واضحة: 'عذراً، هذه الغرفة محجوزة بالفعل في الفترة المحددة'، "
+        "وظلت قاعدة البيانات متسقة بنسبة 100% دون تسجيل أي تضارب."
+    )
+
+    doc.add_page_break()
+
+    # -------------------------------------------------------------
+    # 6. الجزء الرابع: التوليف التراكمي لأسابيع المشروع (W2 - W9)
+    # -------------------------------------------------------------
+    add_arabic_heading(doc, "5. الجزء الرابع: التوليف التراكمي الشامل لأسابيع المشروع (W2 إلى W9)", level=1)
+
+    add_arabic_paragraph(
+        doc,
+        "يوضح هذا الجدول التوليفي مطابقة كافة مخرجات المشروع المنفذة مع توزيع الأسابيع والأوزان والدرجات "
+        "المعتمدة في دليل مساق التدريب الميداني لجامعة الحكمة:"
+    )
+
+    table_weeks = doc.add_table(rows=10, cols=4)
+    table_weeks.alignment = WD_TABLE_ALIGNMENT.CENTER
+    set_table_styling(table_weeks, border_color="E5E7EB", border_sz="4")
+
+    cols_w = ["الأسبوع", "المتطلب في الدليل", "الوزن", "ما تم تنفيذه وإنجازه في المشروع بالتفصيل"]
+    for i, c in enumerate(cols_w):
+        cell = table_weeks.rows[0].cells[i]
+        set_cell_background(cell, "1E1B4B")
+        p = cell.paragraphs[0]
+        set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+        r = p.add_run(c)
+        set_run_font(r, font_name=FONT_ARABIC, size_pt=12.5, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF))
+
+    weeks_summary = [
+        ("W2", "مقترح المشروع والمتطلبات (Project Proposal)", "5%", "صياغة وثيقة المقترح، دراسة المشكلة، الأهداف، النطاق، والجدول الزمني، و12 متطلباً وظيفياً و6 متطلبات غير وظيفية."),
+        ("W3", "التصميم المعماري ومخططات UML (Clean Architecture)", "15%", "بناء معمارية Clean Architecture ونمط المستودع Repository Pattern، ورسم مخططات Use Case و Sequence و Class Diagrams."),
+        ("W4", "تصميم واجهات وتجربة المستخدم (UI/UX Design)", "5%", "هندسة النماذج التفاعلية التوليدية في Adobe XD (XD.xd) بالهوية البصرية الفاخرة (Indigo, Violet, Gold) ودعم الـ RTL."),
+        ("W5", "تطوير واجهات البرمجة (Web API Development)", "10%", "بناء 18 نقطة نهاية برمجية مؤمنة بـ JWT مع حماية البيانات ومعالجة الأخطاء وسياسات الـ CORS."),
+        ("W6", "فحص واختبار واجهات البرمجة (API Testing)", "5%", "أتمتة الفحص الشامل عبر Postman Collection وتوفير واجهة Swagger UI التفاعلية مع تغطية كافة رموز الاستجابة."),
+        ("W7", "تطبيق الويب المتكامل (ASP.NET Core MVC)", "25%", "بناء واجهات MVC بـ Bootstrap 5 RTL، خط Cairo، متغيرات CSS، جداول DataTables.js، ومودالات الحذف التفاعلية."),
+        ("W8", "تطبيق الهاتف المحمول (Flutter Mobile App)", "15%", "تطوير تطبيق موبايل متكامل بنمط Provider وقائمة Drawer وشريط BottomNav ونافذة حجز الغرف المنبثقة SheetModal."),
+        ("W9", "إدارة الإصدارات والدمج (GitHub Workflow)", "5%", "تطبيق إدارة الفروع والدمج، وفصل تطبيق الموبايل في ريبو مستقل تماماً وفق توجيهات أ.د/ إبراهيم البلطة."),
+        ("W10", "التوثيق النهائي والدليل الفني (Documentation)", "15%", "إعداد دليل التثبيت، دليل المستخدم، مصفوفة الاختبارات، الخاتمة والتحديات، وقائمة المراجع العلمية.")
+    ]
+
+    for row_idx, data in enumerate(weeks_summary, start=1):
+        row = table_weeks.rows[row_idx]
+        bg = "F9FAFB" if row_idx % 2 == 1 else "FFFFFF"
+        for col_idx, val in enumerate(data):
+            cell = row.cells[col_idx]
+            set_cell_background(cell, bg)
+            set_cell_margins(cell, 80, 80, 100, 100)
+            p = cell.paragraphs[0]
+            set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+            r = p.add_run(val)
+            is_w = (col_idx == 0)
+            is_weight = (col_idx == 2)
+            set_run_font(r, font_name=FONT_ARABIC, size_pt=12, bold=(is_w or is_weight), color=COLOR_BRAND if is_weight else COLOR_TEXT)
+
+    # -------------------------------------------------------------
+    # 7. الجزء الخامس: الخاتمة والتحديات (W10.4 Conclusion)
+    # -------------------------------------------------------------
+    add_arabic_heading(doc, "6. الجزء الخامس: الخاتمة والتحديات الهندسية والتطويرات المستقبلية (W10.4)", level=1)
+
+    add_arabic_paragraph(
+        doc,
+        "مثلت تجربة مساق التدريب الميداني الفردي محاكاة واقعية ومتقدمة لبيئات العمل المؤسسية في كبرى شركات هندسة البرمجيات. "
+        "تمكن المهندس من قيادة وتطوير كافة مراحل النظام بجهد فردي كامل، والتغلب على العديد من التحديات الهندسية المعقدة:"
+    )
+
+    add_card_box(
+        doc,
+        "التحدي الأول: عزل تطبيق الموبايل في مشروع ومستودع مستقل كلياً (Supervisor Mandate)",
+        [
+            "• المشكلة: كان تطبيق Flutter مدمجاً كمجلد فرعي ضمن حل الـ .NET، وهو ما يتعارض مع توجيه د/ إبراهيم البلطة بضرورة استقلالية الموبايل.",
+            "• الحل الهندسي: تم استخراج مجلد Flutter بالكامل خارج حل الـ Backend، وتأسيس مستودع Git مستقل له بفروعه ودمجه، وتعديل ملفات .gitignore في المشروعين لعزل ملفات البناء الثقيلة، ونشر المشروعين في مستودعين منفصلين على GitHub مع توثيق الربط بينهما."
+        ],
+        border_color="4338CA",
+        bg_color="EEF2FF"
+    )
+
+    add_card_box(
+        doc,
+        "التحدي الثاني: مزامنة التوقيتات القياسية العالمية (UTC Timestamps Synchronization)",
+        [
+            "• المشكلة: ظهور فوارق زمنية تؤدي لاختلاف يوم الحجز عند إرسال التاريخ من أجهزة الموبايل بسبب التوقيت المحلي للمنطقة الزمنية (Local Timezone Offset).",
+            "• الحل الهندسي: توحيد كافة معاملات التواريخ على مستوى طبقة التطبيق (Application Layer) والـ Database بنظام UTC الخالص عبر DateTime.SpecifyKind(d, DateTimeKind.Utc) مما ضمن دقة يوم الحجز والتحقق من التوفر بنسبة 100%."
+        ],
+        border_color="C9971F",
+        bg_color="FFFBEB"
+    )
+
+    add_card_box(
+        doc,
+        "التحدي الثالث: معالجة استجابة شاشات الموبايل وتفادي تجاوز البكسلات (Pixel Overflow Prevention)",
+        [
+            "• المشكلة: ظهور خطوط التحذير الصفراء والسوداء عند تصغير أو تدوير الشاشة بسبب تجاوز أبعاد المكونات لمساحة الشاشة المتاحة.",
+            "• الحل الهندسي: ابتكار عنصر ResponsivePhoneFrame في Flutter مدعوماً بـ LayoutBuilder و SingleChildScrollView مما ضمن تكيف الواجهات تلقائياً مع مختلف قياسات الشاشات دون أي أخطاء تجاوز."
+        ],
+        border_color="7C3AED",
+        bg_color="FAF5FF"
+    )
+
+    add_arabic_heading(doc, "خارطة التطويرات المستقبلية للمنظومة (Future Engineering Roadmap):", level=2)
+    add_arabic_paragraph(doc, "1. ربط بوابات الدفع الإلكتروني المباشر (Stripe / PayPal / المحافظ الإلكترونية اليمنية مثل ون كاش وجايبي وجوالي).")
+    add_arabic_paragraph(doc, "2. تفعيل الإشعارات الفورية السحابية (Push Notifications) عبر Firebase Cloud Messaging لتنبيه النزلاء بمواعيد الدخول والمغادرة.")
+    add_arabic_paragraph(doc, "3. دمج محرك توصيات ذكي بالذكاء الاصطناعي لاقتراح الغرف والفنادق المناسبة بناءً على سلوك وتفضيلات النزيل السابقة.")
+
+    # -------------------------------------------------------------
+    # 8. الجزء السادس: المراجع العلمية (W10.5 References)
+    # -------------------------------------------------------------
+    add_arabic_heading(doc, "7. الجزء السادس: المراجع الأكاديمية والتقنية المعتمدة (W10.5 References)", level=1)
+
+    refs_ar = [
+        "روبرت سي مارتن (Uncle Bob) — كتاب Clean Architecture: A Craftsman's Guide to Software Structure and Design، دار النشر العالمية Prentice Hall.",
+        "شركة مايكروسوفت (Microsoft Corporation) — الوثائق والمراجع الهندسية الرسمية لإطار العمل ASP.NET Core 10.0 و Entity Framework Core، منصة Microsoft Learn.",
+        "شركة جوجل (Google LLC) — التوثيق الرسمي ومستندات المطورين لإطار العمل Flutter وإدارة الحالة عبر Provider Pattern، منصة Flutter.dev.",
+        "د. روي توماس فيلدينغ (Roy Fielding) — أطروحة المعمارية البرمجية لشبكات الويب ونمط واجهات الـ REST Architectural Style، جامعة كاليفورنيا إيرفاين.",
+        "فريق مهندسي الإنترنت الدولي (IETF) — المعيار القياسي الدولي RFC 7519 لرموز التوثيق المشفرة JSON Web Token (JWT).",
+        "جامعة الحكمة — دليل مساق التدريب الميداني لمشاريع تطوير البرمجيات الشاملة الفردية (SDLC)، قسم تكنولوجيا المعلومات، صنعاء، الجمهورية اليمنية."
+    ]
+
+    for idx, ref in enumerate(refs_ar, start=1):
+        p = doc.add_paragraph()
+        set_paragraph_rtl(p, WD_ALIGN_PARAGRAPH.RIGHT)
+        p.paragraph_format.space_after = Pt(4)
+        r = p.add_run(f"[{idx}] {ref}")
+        set_run_font(r, font_name=FONT_ARABIC, size_pt=12.5, bold=False, color=COLOR_TEXT)
+
+    # حفظ المستند
+    output_path_root = r"E:\Project_ASP.NET\Hotel_Booking_System_W10_Documentation_AR_Final.docx"
+    doc.save(output_path_root)
+    print("Main Arabic Document saved successfully to:", output_path_root)
+
+    # محاولة الحفظ بالاسم الأصلي في حال لم يكن مفتوحاً ببرنامج الوورد
+    try:
+        orig_root = r"E:\Project_ASP.NET\Hotel_Booking_System_W10_Documentation_AR.docx"
+        doc.save(orig_root)
+        print("Updated original file:", orig_root)
+    except PermissionError:
+        print("Note: Original file is currently open in Word. Saved to:", output_path_root)
+
+    output_path_docs = r"E:\Project_ASP.NET\HOTEL_BOOKIN_SYSTEM\Hotel_Booking_System\docs\Hotel_Booking_System_W10_Documentation_AR_Final.docx"
+    doc.save(output_path_docs)
+    print("Project Arabic Document copy saved to:", output_path_docs)
+    try:
+        orig_docs = r"E:\Project_ASP.NET\HOTEL_BOOKIN_SYSTEM\Hotel_Booking_System\docs\Hotel_Booking_System_W10_Documentation_AR.docx"
+        doc.save(orig_docs)
+    except PermissionError:
+        pass
+
+if __name__ == "__main__":
+    build_professional_arabic_doc()
+
